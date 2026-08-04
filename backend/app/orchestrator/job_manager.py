@@ -111,8 +111,10 @@ class JobManager:
                         json.dump(state, f)
                 self._save_jobs_index()
                 
-            def update_stage_msg(msg):
+            def update_stage_msg(msg, progress=None):
                 self.jobs[job_id]["stage"] = msg
+                if progress is not None:
+                    self.jobs[job_id]["progress"] = progress
                 self._save_jobs_index()
             
             # ============================
@@ -171,12 +173,45 @@ class JobManager:
             # STAGE 4: Lesson Planning (1 API call)
             # ============================
             if 'lesson_plan' not in state:
+                if 's4_outline' not in state:
+                    state['s4_outline'] = None
+                if 's4_periods' not in state:
+                    state['s4_periods'] = []
+                    
                 self.jobs[job_id]["stage"] = "Stage 4: Planning Lessons"
                 self.jobs[job_id]["progress"] = 40
                 self._save_jobs_index()
+                
                 from ..stages.s4_lesson_planner import LessonPlannerStage
+                from ..models.stage4_planner import PlanOutline
                 s4 = LessonPlannerStage(job_id, config={"language": language})
-                lesson_plan = s4.execute(state['classification'], state['knowledge'], status_callback=update_stage_msg)
+                
+                def on_outline_done(outline):
+                    state['s4_outline'] = outline.model_dump()
+                    save_state()
+                    
+                def on_period_done(period):
+                    state['s4_periods'].append(period.model_dump())
+                    save_state()
+                
+                existing_outline_obj = None
+                if state['s4_outline']:
+                    existing_outline_obj = PlanOutline.model_validate(state['s4_outline'])
+                
+                lesson_plan = s4.execute(
+                    classification=state['classification'], 
+                    knowledge=state['knowledge'], 
+                    start_index=len(state['s4_periods']),
+                    existing_outline=existing_outline_obj,
+                    on_period_complete=on_period_done,
+                    on_outline_complete=on_outline_done,
+                    status_callback=update_stage_msg
+                )
+                
+                # The state['s4_periods'] array now contains the complete list of periods (both previously cached and newly generated)
+                from ..models.stage4_planner import PeriodPlan
+                lesson_plan.periods = [PeriodPlan.model_validate(p) for p in state['s4_periods']]
+                
                 state['lesson_plan'] = lesson_plan.model_dump()
                 save_state()
                 logger.info("Stage 4 complete: Lesson plan created")
@@ -190,14 +225,27 @@ class JobManager:
             # STAGE 5: Content Generation (1 API call per period)
             # ============================
             if 'period_contents' not in state:
+                state['period_contents'] = []
+
+            total_periods = len(lesson_plan_obj.periods) if lesson_plan_obj.periods else 0
+            if len(state['period_contents']) < total_periods:
                 self.jobs[job_id]["stage"] = "Stage 5: Generating Content"
                 self.jobs[job_id]["progress"] = 55
                 self._save_jobs_index()
+                
                 from ..stages.s5_content_generation import ContentGenerationStage
                 s5 = ContentGenerationStage(job_id, config={"language": language})
-                period_contents = s5.execute(lesson_plan_obj, status_callback=update_stage_msg)
-                state['period_contents'] = [pc.model_dump() for pc in period_contents]
-                save_state()
+                
+                def on_s5_period(pc):
+                    state['period_contents'].append(pc.model_dump())
+                    save_state()
+                    
+                new_period_contents = s5.execute(
+                    lesson_plan=lesson_plan_obj, 
+                    start_index=len(state['period_contents']),
+                    on_period_complete=on_s5_period,
+                    status_callback=update_stage_msg
+                )
                 logger.info("Stage 5 complete: Content generated")
             else:
                 logger.info("Stage 5 skipped (cached)")

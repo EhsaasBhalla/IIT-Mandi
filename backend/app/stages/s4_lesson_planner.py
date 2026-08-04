@@ -19,7 +19,7 @@ class LessonPlannerStage(BaseStage):
     Distributes objectives across multiple sessions and allocates timing.
     Chunked into 1+N API calls to completely avoid LLM token exhaustion.
     """
-    def execute(self, classification: dict, knowledge: dict, status_callback=None) -> TeachingPlan:
+    def execute(self, classification: dict, knowledge: dict, start_index: int = 0, existing_outline: PlanOutline = None, on_period_complete=None, on_outline_complete=None, status_callback=None) -> TeachingPlan:
         # Extract metadata
         subject = classification.get("subject", "General")
         grade = classification.get("grade_level", "Unknown")
@@ -35,41 +35,49 @@ class LessonPlannerStage(BaseStage):
         client = LLMClient()
         language = self.config.get("language", "English")
         
-        if status_callback:
-            status_callback("Stage 4: Planning Lessons (Generating Outline)")
-            
         # Phase 1: High-Level Outline Generation
-        outline_prompt = f"""
-        You are an expert instructional designer. Create a high-level multi-period lesson plan outline.
-        
-        Subject: {subject}
-        Grade Level: {grade}
-        Estimated Periods (45 min each): {num_periods}
-        
-        Key Concepts to Cover:
-        {', '.join(concepts)}
-        
-        Learning Objectives:
-        {'; '.join(objectives)}
-        
-        Distribute these concepts and objectives logically across the {num_periods} periods. 
-        Only return the title, focus concepts, and focus objectives for each period. Do not generate detailed methodologies yet.
-        """
-        
-        outline_result = client.generate_structured(
-            language=language, 
-            prompt=outline_prompt,
-            response_model=PlanOutline,
-            system_prompt="You are an expert curriculum planner designing a high-level syllabus outline."
-        )
+        if existing_outline:
+            outline_result = existing_outline
+        else:
+            if status_callback:
+                status_callback("Stage 4: Planning Lessons (Generating Outline)", 25)
+                
+            outline_prompt = f"""
+            You are an expert instructional designer. Create a high-level multi-period lesson plan outline.
+            
+            Subject: {subject}
+            Grade Level: {grade}
+            Estimated Periods (45 min each): {num_periods}
+            
+            Key Concepts to Cover:
+            {', '.join(concepts)}
+            
+            Learning Objectives:
+            {'; '.join(objectives)}
+            
+            Distribute these concepts and objectives logically across the {num_periods} periods. 
+            Only return the title, focus concepts, and focus objectives for each period. Do not generate detailed methodologies yet.
+            """
+            
+            outline_result = client.generate_structured(
+                language=language, 
+                prompt=outline_prompt,
+                response_model=PlanOutline,
+                system_prompt="You are an expert curriculum planner designing a high-level syllabus outline."
+            )
+            
+            if on_outline_complete:
+                on_outline_complete(outline_result)
         
         # Phase 2: Detailed Period Generation (Chunked)
         detailed_periods = []
         
         total = len(outline_result.periods)
-        for i, p_outline in enumerate(outline_result.periods):
+        for i in range(start_index, total):
+            p_outline = outline_result.periods[i]
             if status_callback:
-                status_callback(f"Stage 4: Planning Lessons ({i+1}/{total} periods)")
+                prog = 25 + int((i / total) * 15)
+                status_callback(f"Stage 4: Planning Lessons ({i+1}/{total} periods)", prog)
                 
             period_prompt = f"""
             You are an expert instructional designer. Generate the detailed lesson plan for a single 45-minute period.
@@ -98,8 +106,11 @@ class LessonPlannerStage(BaseStage):
             )
             detailed_periods.append(period_detail)
             
+            if on_period_complete:
+                on_period_complete(period_detail)
+            
         if status_callback:
-            status_callback("Stage 4: Planning Lessons (Assembling)")
+            status_callback("Stage 4: Planning Lessons (Assembling)", 40)
             
         # Phase 3: Assembly
         return TeachingPlan(

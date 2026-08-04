@@ -9,17 +9,19 @@ class ContentGenerationStage(BaseStage):
     Stage 5: Generate detailed instructional materials (scripts, blackboard notes,
     entry/exit tickets) for each period in the lesson plan.
     """
-    def execute(self, lesson_plan: TeachingPlan, status_callback=None) -> List[PeriodContent]:
+    def execute(self, lesson_plan: TeachingPlan, start_index: int = 0, on_period_complete=None, status_callback=None) -> List[PeriodContent]:
         client = LLMClient()
         period_contents = []
         
         # Generate content for all periods in the lesson plan
         periods_to_generate = lesson_plan.periods if lesson_plan.periods else []
-        
         total = len(periods_to_generate)
-        for i, period in enumerate(periods_to_generate):
+        
+        for i in range(start_index, total):
+            period = periods_to_generate[i]
             if status_callback:
-                status_callback(f"Stage 5: Generating Content ({i+1}/{total} periods)")
+                prog = 40 + int((i / total) * 15)
+                status_callback(f"Stage 5: Generating Content ({i+1}/{total} periods)", prog)
                 
             system_prompt = (
                 "You are a Senior Curriculum Designer and Veteran Teacher operating in a Critic-Creator loop. "
@@ -40,5 +42,8 @@ class ContentGenerationStage(BaseStage):
                 system_prompt=system_prompt
             )
             period_contents.append(result)
+            
+            if on_period_complete:
+                on_period_complete(result)
             
         return period_contents
