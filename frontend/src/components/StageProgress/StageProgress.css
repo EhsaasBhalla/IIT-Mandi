@@ -1,0 +1,79 @@
+.stage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.stage-item {
+  display: flex;
+  gap: 1.5rem;
+  opacity: 0.5;
+  transition: all var(--transition);
+}
+
+.stage-item.active {
+  opacity: 1;
+}
+
+.stage-item.completed {
+  opacity: 0.8;
+}
+
+.stage-icon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.connector-line {
+  width: 2px;
+  height: 3rem;
+  background: var(--surface-border);
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.stage-item.completed .connector-line {
+  background: var(--secondary);
+}
+
+.stage-icon {
+  z-index: 2;
+}
+
+.completed-icon {
+  color: var(--secondary);
+}
+
+.active-icon {
+  color: var(--primary);
+}
+
+.pending-icon {
+  color: var(--text-secondary);
+}
+
+.spin {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.stage-content {
+  padding-bottom: 2.5rem;
+}
+
+.stage-content h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.stage-content p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}

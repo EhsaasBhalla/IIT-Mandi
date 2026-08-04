@@ -1,0 +1,30 @@
+# Introduction to Classical Mechanics: Newton's Laws of Motion
+
+## Grade Level: 10th Grade
+## Subject: Physics
+
+### Overview
+This chapter covers the foundational principles of classical mechanics as formulated by Sir Isaac Newton. Students will learn how forces interact with mass to produce acceleration and motion.
+
+### Core Concepts
+
+1. **Newton's First Law (Law of Inertia)**
+An object at rest stays at rest, and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force. 
+- *Key Concept*: Inertia is the resistance of any physical object to any change in its velocity.
+
+2. **Newton's Second Law (F = ma)**
+The acceleration of an object as produced by a net force is directly proportional to the magnitude of the net force, in the same direction as the net force, and inversely proportional to the mass of the object.
+- *Equation*: F = m * a (Force = mass x acceleration)
+- *Units*: Force is measured in Newtons (N), mass in kilograms (kg), and acceleration in meters per second squared (m/s^2).
+
+3. **Newton's Third Law (Action and Reaction)**
+For every action, there is an equal and opposite reaction. This means that in every interaction, there is a pair of forces acting on the two interacting objects.
+
+### Common Misconceptions
+- Students often think that a constant force is required to maintain a constant speed. (False, due to the First Law).
+- Students sometimes believe that the "reaction" force happens *after* the "action" force. (False, they are simultaneous).
+- Heavier objects fall faster than lighter objects in a vacuum. (False, acceleration due to gravity is constant).
+
+### Example Problem
+A car has a mass of 1200 kg. What net force is required to accelerate the car at 3.0 m/s^2?
+*Solution*: F = 1200 kg * 3.0 m/s^2 = 3600 N.

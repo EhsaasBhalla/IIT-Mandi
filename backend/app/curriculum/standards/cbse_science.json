@@ -1,0 +1,42 @@
+{
+  "board": "CBSE",
+  "grade": "10",
+  "subject": "Science",
+  "chapters": [
+    {
+      "name": "Light - Reflection and Refraction",
+      "learning_outcomes": [
+        "LO-1: Explain laws of reflection",
+        "LO-2: Distinguish between real and virtual images",
+        "LO-3: Apply mirror formula and magnification",
+        "LO-4: Explain laws of refraction and refractive index",
+        "LO-5: Draw ray diagrams for spherical mirrors and lenses"
+      ],
+      "assessment_pattern": {
+        "mcq_count": 5,
+        "short_answer_count": 3,
+        "long_answer_count": 2,
+        "numerical_count": 3,
+        "total_marks": 30
+      },
+      "keywords": ["concave", "convex", "focal length", "mirror formula", "refractive index", "lens power"]
+    },
+    {
+      "name": "Chemical Reactions and Equations",
+      "learning_outcomes": [
+        "LO-1: Write and balance chemical equations",
+        "LO-2: Identify types of chemical reactions (combination, decomposition, displacement, double displacement)",
+        "LO-3: Explain oxidation and reduction",
+        "LO-4: Describe effects of oxidation in everyday life (corrosion, rancidity)"
+      ],
+      "assessment_pattern": {
+        "mcq_count": 5,
+        "short_answer_count": 4,
+        "long_answer_count": 1,
+        "numerical_count": 0,
+        "total_marks": 25
+      },
+      "keywords": ["balance", "combination", "decomposition", "displacement", "oxidation", "reduction", "corrosion"]
+    }
+  ]
+}
