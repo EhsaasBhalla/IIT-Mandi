@@ -110,6 +110,10 @@ class JobManager:
                     with open(cache_file, 'w') as f:
                         json.dump(state, f)
                 self._save_jobs_index()
+                
+            def update_stage_msg(msg):
+                self.jobs[job_id]["stage"] = msg
+                self._save_jobs_index()
             
             # ============================
             # STAGE 1: Document Parsing (FREE - local PyPDF2)
@@ -172,7 +176,7 @@ class JobManager:
                 self._save_jobs_index()
                 from ..stages.s4_lesson_planner import LessonPlannerStage
                 s4 = LessonPlannerStage(job_id, config={"language": language})
-                lesson_plan = s4.execute(state['classification'], state['knowledge'])
+                lesson_plan = s4.execute(state['classification'], state['knowledge'], status_callback=update_stage_msg)
                 state['lesson_plan'] = lesson_plan.model_dump()
                 save_state()
                 logger.info("Stage 4 complete: Lesson plan created")
@@ -191,7 +195,7 @@ class JobManager:
                 self._save_jobs_index()
                 from ..stages.s5_content_generation import ContentGenerationStage
                 s5 = ContentGenerationStage(job_id, config={"language": language})
-                period_contents = s5.execute(lesson_plan_obj)
+                period_contents = s5.execute(lesson_plan_obj, status_callback=update_stage_msg)
                 state['period_contents'] = [pc.model_dump() for pc in period_contents]
                 save_state()
                 logger.info("Stage 5 complete: Content generated")
