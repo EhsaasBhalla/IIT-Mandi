@@ -122,7 +122,7 @@ class JobManager:
             # ============================
             if 'doc_intel' not in state:
                 self.jobs[job_id]["stage"] = "Stage 1: Parsing Document"
-                self.jobs[job_id]["progress"] = 5
+                self.jobs[job_id]["progress"] = 0
                 self._save_jobs_index()
                 from ..stages.s1_document_intelligence import DocumentIntelligenceStage
                 s1 = DocumentIntelligenceStage(job_id)
@@ -138,7 +138,7 @@ class JobManager:
             # ============================
             if 'classification' not in state:
                 self.jobs[job_id]["stage"] = "Stage 2: Classifying Content"
-                self.jobs[job_id]["progress"] = 15
+                self.jobs[job_id]["progress"] = 10
                 self._save_jobs_index()
                 from ..stages.s2_educational_classification import EducationalClassificationStage
                 s2 = EducationalClassificationStage(job_id, config={"language": language})
@@ -158,7 +158,7 @@ class JobManager:
             # ============================
             if 'knowledge' not in state:
                 self.jobs[job_id]["stage"] = "Stage 3: Extracting Knowledge"
-                self.jobs[job_id]["progress"] = 25
+                self.jobs[job_id]["progress"] = 20
                 self._save_jobs_index()
                 from ..stages.s3_knowledge_extraction import KnowledgeExtractionStage
                 s3 = KnowledgeExtractionStage(job_id, config={"language": language})
@@ -179,11 +179,10 @@ class JobManager:
                     state['s4_periods'] = []
                     
                 self.jobs[job_id]["stage"] = "Stage 4: Planning Lessons"
-                self.jobs[job_id]["progress"] = 40
+                self.jobs[job_id]["progress"] = 30
                 self._save_jobs_index()
                 
-                from ..stages.s4_lesson_planner import LessonPlannerStage
-                from ..models.stage4_planner import PlanOutline
+                from ..stages.s4_lesson_planner import LessonPlannerStage, PlanOutline
                 s4 = LessonPlannerStage(job_id, config={"language": language})
                 
                 def on_outline_done(outline):
@@ -230,7 +229,7 @@ class JobManager:
             total_periods = len(lesson_plan_obj.periods) if lesson_plan_obj.periods else 0
             if len(state['period_contents']) < total_periods:
                 self.jobs[job_id]["stage"] = "Stage 5: Generating Content"
-                self.jobs[job_id]["progress"] = 55
+                self.jobs[job_id]["progress"] = 40
                 self._save_jobs_index()
                 
                 from ..stages.s5_content_generation import ContentGenerationStage
@@ -255,7 +254,7 @@ class JobManager:
             # ============================
             if 'activities' not in state:
                 self.jobs[job_id]["stage"] = "Stage 6: Designing Activities"
-                self.jobs[job_id]["progress"] = 68
+                self.jobs[job_id]["progress"] = 50
                 self._save_jobs_index()
                 from ..stages.s6_activities import ActivityGenerationStage
                 s6 = ActivityGenerationStage(job_id, config={"language": language})
@@ -271,7 +270,7 @@ class JobManager:
             # ============================
             if 'ab_test_assessment' not in state:
                 self.jobs[job_id]["stage"] = "Stage 7: Creating Assessments"
-                self.jobs[job_id]["progress"] = 78
+                self.jobs[job_id]["progress"] = 60
                 self._save_jobs_index()
                 from ..stages.s7_assessment import AssessmentGenerationStage
                 s7 = AssessmentGenerationStage(job_id, config={"language": language})
@@ -287,7 +286,7 @@ class JobManager:
             # ============================
             if 'gap_analysis' not in state:
                 self.jobs[job_id]["stage"] = "Stage 8: Analyzing Gaps"
-                self.jobs[job_id]["progress"] = 86
+                self.jobs[job_id]["progress"] = 70
                 self._save_jobs_index()
                 from ..stages.s8_gap_analysis import GapAnalysisStage
                 s8 = GapAnalysisStage(job_id, config={"language": language})
@@ -303,7 +302,7 @@ class JobManager:
             # ============================
             if 'validation' not in state:
                 self.jobs[job_id]["stage"] = "Stage 9: Validating Quality"
-                self.jobs[job_id]["progress"] = 93
+                self.jobs[job_id]["progress"] = 80
                 self._save_jobs_index()
                 from ..stages.s9_validation import ValidationStage
                 s9 = ValidationStage(job_id, config={"language": language})
@@ -319,7 +318,7 @@ class JobManager:
             # ============================
             if 'publishing' not in state:
                 self.jobs[job_id]["stage"] = "Stage 10: Packaging TKP"
-                self.jobs[job_id]["progress"] = 98
+                self.jobs[job_id]["progress"] = 90
                 self._save_jobs_index()
                 from ..stages.s10_publishing import PublishingStage
                 s10 = PublishingStage(job_id, config={"language": language})

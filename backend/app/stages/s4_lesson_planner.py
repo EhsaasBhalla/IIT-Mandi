@@ -40,7 +40,7 @@ class LessonPlannerStage(BaseStage):
             outline_result = existing_outline
         else:
             if status_callback:
-                status_callback("Stage 4: Planning Lessons (Generating Outline)", 25)
+                status_callback("Stage 4: Planning Lessons (Generating Outline)", 30)
                 
             outline_prompt = f"""
             You are an expert instructional designer. Create a high-level multi-period lesson plan outline.
@@ -76,7 +76,7 @@ class LessonPlannerStage(BaseStage):
         for i in range(start_index, total):
             p_outline = outline_result.periods[i]
             if status_callback:
-                prog = 25 + int((i / total) * 15)
+                prog = 30 + int((i / total) * 10)
                 status_callback(f"Stage 4: Planning Lessons ({i+1}/{total} periods)", prog)
                 
             period_prompt = f"""

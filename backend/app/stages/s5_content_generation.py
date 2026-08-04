@@ -20,7 +20,7 @@ class ContentGenerationStage(BaseStage):
         for i in range(start_index, total):
             period = periods_to_generate[i]
             if status_callback:
-                prog = 40 + int((i / total) * 15)
+                prog = 40 + int((i / total) * 10)
                 status_callback(f"Stage 5: Generating Content ({i+1}/{total} periods)", prog)
                 
             system_prompt = (
