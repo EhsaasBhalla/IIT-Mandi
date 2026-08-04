@@ -51,25 +51,30 @@ class LLMClient:
         self, 
         prompt: str, 
         response_model: Type[T], 
-        system_prompt: str = "You are an expert educational AI.",
+        system_prompt: str = "You are an expert educational AI. Be concise and precise.",
         temperature: float = 0.2,
         language: str = "English"
     ) -> T:
         """
         Generates a structured Pydantic model response from the LLM.
-        Built-in: pacing, truncation, fallback, and retry.
+        Engineered with strict token budget management for Groq 6,000 TPM free tier.
         """
-        pace = 2 if self.provider == 'groq' else 6
+        # Pace requests to prevent bursting
+        pace = 3 if self.provider == 'groq' else 5
         time.sleep(pace)
         
         # Inject Multilingual Support
         if language and language.lower() != "english":
             system_prompt += f"\n\nCRITICAL INSTRUCTION: You MUST generate all output exclusively in {language}. Ensure educational terminology is accurately localized."
 
-        max_prompt_chars = 6000
+        # Keep prompt concise to stay well within Groq 6,000 TPM limit (Prompt + Output Max Tokens < 5000)
+        max_prompt_chars = 3500 if self.provider == 'groq' else 12000
         if len(prompt) > max_prompt_chars:
-            prompt = prompt[:max_prompt_chars] + "\n\n[Content truncated for processing efficiency]"
-            logger.info(f"Prompt truncated to {max_prompt_chars} chars")
+            prompt = prompt[:max_prompt_chars] + "\n\n[Content summarized for processing efficiency]"
+            logger.info(f"Prompt truncated to {max_prompt_chars} chars for token budget")
+
+        # Set conservative max_tokens for Groq so requested TPM never exceeds 6000
+        max_tokens_val = 1800 if self.provider == 'groq' else 3000
 
         kwargs = {
             "model": self.model_name,
@@ -79,7 +84,7 @@ class LLMClient:
                 {"role": "user", "content": prompt}
             ],
             "temperature": temperature,
-            "max_tokens": 4096
+            "max_tokens": max_tokens_val
         }
 
         # Try primary model, then fallback, with retries
@@ -97,11 +102,18 @@ class LLMClient:
                 except Exception as e:
                     last_error = e
                     error_str = str(e)
-                    is_rate_limit = "429" in error_str or "rate_limit" in error_str or "RESOURCE_EXHAUSTED" in error_str
+                    is_rate_limit = any(k in error_str.lower() for k in ["429", "413", "rate_limit", "resource_exhausted", "tokens per minute", "tpm"])
                     
                     if is_rate_limit:
-                        wait = 10 * (attempt + 1)
-                        logger.warning(f"{model} rate limited (attempt {attempt+1}/3). Waiting {wait}s...")
+                        # If 413 token budget exceeded, reduce prompt & max_tokens aggressively
+                        if "413" in error_str or "tokens" in error_str.lower():
+                            logger.warning(f"413 Token limit encountered on {model}. Halving max_tokens and compressing prompt...")
+                            kwargs["max_tokens"] = 1200
+                            if len(kwargs["messages"][1]["content"]) > 2200:
+                                kwargs["messages"][1]["content"] = kwargs["messages"][1]["content"][:2200]
+                        
+                        wait = 12 * (attempt + 1)
+                        logger.warning(f"{model} rate limit / TPM pause (attempt {attempt+1}/3). Waiting {wait}s...")
                         time.sleep(wait)
                     else:
                         logger.error(f"{model} error: {error_str[:150]}")
@@ -109,6 +121,18 @@ class LLMClient:
             
             if self.fallback_model and model != self.fallback_model:
                 logger.warning(f"Switching to fallback model: {self.fallback_model}")
-                time.sleep(3)
+                time.sleep(4)
         
+        # If Groq is completely rate-limited and Gemini Key exists, fallback to Gemini 2.0 Flash
+        if self.provider == 'groq' and Config.GEMINI_API_KEY:
+            try:
+                logger.warning("Groq TPM exhausted. Falling back to Gemini 2.0 Flash...")
+                os.environ["GEMINI_API_KEY"] = Config.GEMINI_API_KEY
+                gemini_client = instructor.from_litellm(litellm.completion)
+                kwargs["model"] = "gemini/gemini-2.0-flash"
+                kwargs["max_tokens"] = 2500
+                return gemini_client.chat.completions.create(**kwargs)
+            except Exception as ge:
+                logger.error(f"Gemini fallback error: {ge}")
+
         raise last_error

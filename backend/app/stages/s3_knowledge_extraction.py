@@ -22,7 +22,7 @@ class KnowledgeExtractionStage(BaseStage):
         # Let's combine text up to 8000 characters for the prototype.
         combined_text = ""
         for chunk in chunks:
-            if len(combined_text) < 8000:
+            if len(combined_text) < 3000:
                 combined_text += chunk.get("content", "") + "\n\n"
                 
         prompt = f"""
