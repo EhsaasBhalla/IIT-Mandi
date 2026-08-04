@@ -303,9 +303,9 @@ hallucination_flags[], structural_flags[],
 time_validation: Dict[str, bool]
 ```
 
-#### Stage 10 — Publishing (Free)
+#### Stage 10 — Publishing (Multi-Format Export)
 
-**Purpose**: Packages the final TKP output for export. No API calls.
+**Purpose**: Packages the final TKP output into multiple teacher-friendly formats (PDF, DOCX, PPTX). Handles ephemeral disk caching for serverless environments (like Render).
 
 | Property | Value |
 |----------|-------|
@@ -314,23 +314,38 @@ time_validation: Dict[str, bool]
 | API Calls | **0** |
 | Caching Key | `publishing` |
 
+**Export Pipeline**:
+- Generates polished **PDFs** using FPDF2.
+- Generates editable **Word Documents (DOCX)** using python-docx.
+- Generates presentation **Slides (PPTX)** using python-pptx.
+- Download routes fallback to reading the raw JSON cache from the `storage/cache/` hash and regenerating the binary files on-the-fly if ephemeral storage wiped them.
+
 ---
 
 ## 4. Multi-Agent LLM Architecture
 
-### 4.1 Provider Abstraction
+### 4.1 Dynamic Provider Fallback (API Key Driven)
 
 ```mermaid
 graph LR
     subgraph LLMClient["LLMClient (Unified Interface)"]
         GS["generate_structured()"]
+        AC["Auto-detect available keys"]
     end
 
-    GS -->|"provider=groq"| GROQ["Groq API<br/>llama-3.3-70b-versatile<br/>↓ fallback<br/>llama-3.1-8b-instant"]
-    GS -->|"provider=gemini"| GEMINI["Gemini API<br/>gemini-2.0-flash<br/>↓ fallback<br/>gemini-2.0-flash-lite"]
-    GS -->|"provider=openai"| OPENAI["OpenAI API<br/>gpt-4o-mini"]
-    GS -->|"provider=huggingface"| HF["HuggingFace<br/>DeepSeek-V4-Pro"]
+    AC -->|1. Try Primary| P1["Primary Provider (e.g., Gemini)"]
+    AC -->|2. On Failure| P2["Fallback Provider (e.g., Groq)"]
+    AC -->|3. On Failure| P3["Next Available..."]
+
+    P1 -->|"gemini-2.0-flash"| GEMINI
+    P2 -->|"llama-3.1-8b-instant"| GROQ
 ```
+
+The system implements a **fully dynamic, cross-provider fallback mechanism**:
+1. On initialization, `LLMClient` detects which API keys exist in the environment (`GEMINI_API_KEY`, `GROQ_API_KEY`, etc.).
+2. It attempts to use the primary provider defined by `LLM_PROVIDER`.
+3. If the primary provider hits a hard rate limit or outage, the system **automatically fails over** to the next available provider in its arsenal.
+4. Each provider has a tailored token budget (e.g., 8192 tokens/30K chars for Gemini, vs 1800 tokens/3.5K chars for Groq) to ensure maximum content depth without hitting HTTP 413 Payload Too Large errors.
 
 ### 4.2 Retry & Fallback Strategy
 
@@ -350,15 +365,15 @@ sequenceDiagram
     alt Success
         Primary-->>Retry: Pydantic Response
         Retry-->>Client: Return
-    else 429 / RESOURCE_EXHAUSTED
-        Primary-->>Retry: Rate Limit Error
-        Retry->>Retry: Parse retryDelay from error
+    else 429 / RESOURCE_EXHAUSTED / 413
+        Primary-->>Retry: Rate Limit / Token Error
+        Retry->>Retry: Reduce Token Budget dynamically
         Retry->>Retry: sleep(delay + jitter)
         Retry->>Primary: Retry (up to 10x)
         
         alt Still Failing
-            Primary-->>Client: Rate Limit
-            Client->>Fallback: Try lighter model
+            Primary-->>Client: Hard Failure
+            Client->>Fallback: Try intra-provider fallback model
             Fallback-->>Client: Response
         end
     end
@@ -374,7 +389,7 @@ sequenceDiagram
 | Max Delay | 120 seconds |
 | Backoff | Exponential (delay × 2) |
 | Jitter | Random 1–5 seconds |
-| Rate Limit Detection | `429`, `RESOURCE_EXHAUSTED`, `RateLimitError` |
+| Rate Limit Detection | `429`, `RESOURCE_EXHAUSTED`, `RateLimitError`, `413` |
 
 ### 4.3 Structured Output Generation
 
@@ -442,9 +457,13 @@ SCENARIO: Pipeline crashes at Stage 5 due to rate limit
           Saved: 4 API calls, ~30 seconds
 ```
 
-### 5.3 History Persistence
+### 5.3 History & Ephemeral Storage Persistence
 
-Job metadata is saved to `storage/cache/_jobs_index.json` and survives server restarts. On startup, `JobManager._load_history()` restores all previous jobs. Interrupted jobs are marked with status `"interrupted"`.
+Job metadata is saved to `storage/cache/_jobs_index.json` and survives server restarts. 
+To account for **ephemeral serverless storage** (e.g., Render spinning down and wiping generated PDFs), the download routes implement a cache-fallback mechanism:
+1. When a user clicks "Download PDF", it checks for the binary file.
+2. If missing, it uses the job's `file_hash` to load the JSON cache from disk.
+3. It passes the cache directly into the Stage 10 Publishing Agent to dynamically regenerate the missing PDF/DOCX/PPTX on the fly, seamlessly returning it to the user.
 
 ---
 
@@ -468,7 +487,7 @@ Job metadata is saved to `storage/cache/_jobs_index.json` and survives server re
 
 ### 6.2 Token Optimization
 
-- **Prompt truncation**: Document text capped at 8000 characters per API call
+- **Prompt truncation**: Document text capped dynamically based on provider capabilities.
 - **Incremental caching**: Never re-processes completed stages
 - **Dynamic pacing**: Provider-aware sleep (2s Groq vs 6s Gemini)
 - **Automatic fallback**: Switches to lighter model on rate limits
@@ -505,6 +524,7 @@ BaseStage (self.config["language"]) → LLMClient (system prompt injection)
 | `GET` | `/api/jobs` | List all jobs (history) | None |
 | `GET` | `/api/status/<job_id>` | Poll job progress | None |
 | `GET` | `/api/result/<job_id>` | Get completed TKP result | None |
+| `GET` | `/api/download/<job_id>/<fmt>`| Download PDF/DOCX/PPTX | None |
 | `GET` | `/health` | Health check | None |
 
 ### 8.2 Upload Request
@@ -567,7 +587,7 @@ graph TD
     HP["HistoryPage"]
     UZ["UploadZone"]
     SP["StageProgress"]
-    TV["TKPViewer"]
+    TV["TKPViewer<br/>(SVG Knowledge Graph)"]
     AB["ABTestView"]
 
     App --> NB
@@ -582,20 +602,19 @@ graph TD
     RP --> AB
 ```
 
-### 9.2 Page Routing
+### 9.2 Page Routing & UI Features
 
-| Route | Component | Description |
-|-------|-----------|-------------|
-| `/` | UploadPage | File upload + configuration |
-| `/progress/:jobId` | ProgressPage | Real-time pipeline progress |
-| `/results/:jobId` | ResultsPage | TKP viewer + A/B test view |
-| `/history` | HistoryPage | All past jobs |
+| Component | Feature Highlight |
+|-----------|-------------------|
+| **ResultsPage** | Provides deep tabbed views (Knowledge Graph, Scripts, Activities, A/B Test, Gap Analysis, Quality Report). Includes **PDF/DOCX/PPTX export buttons**. |
+| **TKPViewer** | Renders a fully interactive, force-directed SVG Knowledge Graph. Clicking nodes displays definitions, prerequisites, and mathematical formulae. |
+| **Quality Report** | Replaces the raw JSON payload with a pedagogical evaluation summary, displaying the Stage 9 Hallucination Score, completeness flags, and recommendations. |
 
 ### 9.3 Design System
 
 - **Theme**: Dark mode with glassmorphism effects
 - **Typography**: Modern sans-serif (system fonts)
-- **Animations**: CSS transitions on hover, progress bars, page transitions
+- **Animations**: CSS transitions on hover, SVG glow effects, page transitions
 - **Responsiveness**: Fluid layout with CSS variables
 
 ---
