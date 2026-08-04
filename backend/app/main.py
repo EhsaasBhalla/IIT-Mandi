@@ -16,7 +16,22 @@ def create_app(config_class=Config):
     from .api.routes import api_bp
     app.register_blueprint(api_bp)
     
-    # Health check endpoint
+    # Health check & Root landing endpoints
+    @app.route('/')
+    def root():
+        return jsonify({
+            "service": "Teacher Knowledge Package (TKP) Platform API",
+            "status": "online",
+            "version": "1.0.0",
+            "endpoints": [
+                "/api/upload",
+                "/api/status/<job_id>",
+                "/api/result/<job_id>",
+                "/api/jobs",
+                "/health"
+            ]
+        })
+
     @app.route('/health')
     def health_check():
         return jsonify({"status": "healthy", "version": "1.0.0"})
