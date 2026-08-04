@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { BookOpen, FileText, CheckCircle2, AlertTriangle, Download, ArrowLeft, Layers, HelpCircle, Activity, FileDown } from 'lucide-react';
+import { BookOpen, FileText, CheckCircle2, AlertTriangle, Download, ArrowLeft, Layers, HelpCircle, Activity, FileDown, Clock, CheckCircle } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 import TKPViewer from '../../components/TKPViewer/TKPViewer';
 import ABTestView from '../../components/ABTestView/ABTestView';
@@ -68,11 +68,11 @@ const ResultsPage = () => {
   }
 
   const classification = data.classification || {};
-  const knowledge = data.knowledge_graph || data.knowledge || {};
   const lessonPlan = data.lesson_plan || {};
   const periodContents = data.period_contents || [];
   const activities = data.activities || [];
-  const gaps = data.gap_analysis || {};
+  const gapsData = data.gap_analysis || {};
+  const gapsList = gapsData.gaps || [];
 
   return (
     <div className="results-page animate-fade-in">
@@ -141,13 +141,48 @@ const ResultsPage = () => {
         {/* LESSON PLAN TAB */}
         {activeTab === 'lesson_plan' && (
           <div>
-            <h3 style={{ color: '#38bdf8', marginTop: 0 }}>Multi-Period Lesson Breakdown</h3>
+            <h3 style={{ color: '#38bdf8', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Layers size={20} /> Multi-Period Curriculum Sequence ({lessonPlan.total_periods || periodContents.length || 3} Periods)
+            </h3>
             {(lessonPlan.periods || []).map((p, idx) => (
               <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#818cf8' }}>Period {p.period_number || idx + 1}: {p.title || p.topic || p.theme} ({p.duration_minutes || 45} mins)</h4>
-                <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: '0.4rem 0' }}><strong>Objectives:</strong> {Array.isArray(p.objectives) ? p.objectives.join(', ') : p.objectives}</p>
-                <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: '0.4rem 0' }}><strong>Methodology:</strong> {p.teaching_methodology || 'Interactive lecture & problem solving'}</p>
-                <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: '0.4rem 0' }}><strong>Key Takeaway:</strong> {p.key_takeaway || 'Core understanding of topics.'}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <h4 style={{ margin: 0, color: '#818cf8', fontSize: '1.1rem' }}>
+                    Period {p.period_number || idx + 1}: {p.title || `Period ${idx + 1}`}
+                  </h4>
+                  <span style={{ fontSize: '0.8rem', background: 'rgba(129, 140, 248, 0.15)', color: '#818cf8', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
+                    <Clock size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                    {p.duration_minutes || lessonPlan.period_duration_minutes || 45} mins
+                  </span>
+                </div>
+                
+                {p.learning_objectives && p.learning_objectives.length > 0 && (
+                  <div style={{ marginTop: '0.6rem' }}>
+                    <strong style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Target Objectives:</strong>
+                    <ul style={{ margin: '0.3rem 0', paddingLeft: '1.2rem', color: '#cbd5e1', fontSize: '0.9rem' }}>
+                      {p.learning_objectives.map((obj, oIdx) => (
+                        <li key={oIdx}>{obj}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: '0.5rem 0' }}>
+                  <strong style={{ color: '#94a3b8' }}>Pedagogical Methodology:</strong> {p.teaching_methodology || 'Interactive instruction and scaffolding'}
+                </p>
+
+                {p.concepts_covered && p.concepts_covered.length > 0 && (
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <strong style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Concepts Covered:</strong>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.3rem' }}>
+                      {p.concepts_covered.map((c, cIdx) => (
+                        <span key={cIdx} style={{ background: '#090d16', color: '#38bdf8', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -156,18 +191,48 @@ const ResultsPage = () => {
         {/* SCRIPTS & CONTENT TAB */}
         {activeTab === 'scripts' && (
           <div>
-            <h3 style={{ color: '#38bdf8', marginTop: 0 }}>Teacher Lecture Scripts & Board Work</h3>
+            <h3 style={{ color: '#38bdf8', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <FileText size={20} /> Teacher Lecture Scripts & Instructional Delivery
+            </h3>
             {periodContents.map((pc, idx) => (
-              <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <h4 style={{ margin: '0 0 0.8rem 0', color: '#38bdf8' }}>Period {pc.period_number || idx + 1}: Teacher Delivery Script</h4>
-                <div style={{ background: '#090d16', padding: '1rem', borderRadius: '6px', borderLeft: '4px solid #38bdf8', marginBottom: '1rem' }}>
-                  <strong style={{ color: '#94a3b8', fontSize: '0.85rem' }}>TEACHER SCRIPT:</strong>
-                  <p style={{ color: '#f1f5f9', whiteSpace: 'pre-line', marginTop: '0.5rem', lineHeight: '1.6' }}>{pc.teacher_script || 'Lecture outline and explanations.'}</p>
+              <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.4rem', borderRadius: '10px', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <h4 style={{ margin: '0 0 1rem 0', color: '#38bdf8', fontSize: '1.15rem' }}>
+                  Period {pc.period_number || idx + 1}: Instructional Script
+                </h4>
+
+                {/* Entry Ticket */}
+                {pc.entry_ticket && (
+                  <div style={{ background: '#090d16', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #818cf8', marginBottom: '1rem' }}>
+                    <strong style={{ color: '#818cf8', fontSize: '0.85rem' }}>🎫 5-MIN ENTRY TICKET:</strong>
+                    <p style={{ color: '#f1f5f9', margin: '0.3rem 0 0 0', fontSize: '0.95rem' }}>{pc.entry_ticket.question}</p>
+                    <p style={{ color: '#94a3b8', margin: '0.3rem 0 0 0', fontSize: '0.85rem' }}>Expected Answer: {pc.entry_ticket.expected_answer}</p>
+                  </div>
+                )}
+
+                {/* Teacher Script */}
+                <div style={{ background: '#090d16', padding: '1.2rem', borderRadius: '8px', borderLeft: '4px solid #38bdf8', marginBottom: '1rem' }}>
+                  <strong style={{ color: '#38bdf8', fontSize: '0.85rem' }}>🎙️ TEACHER VERBATIM SCRIPT:</strong>
+                  <p style={{ color: '#f1f5f9', whiteSpace: 'pre-line', marginTop: '0.6rem', lineHeight: '1.7', fontSize: '0.95rem' }}>
+                    {pc.teacher_script || 'Lecture outline and explanations.'}
+                  </p>
                 </div>
+
+                {/* Blackboard Notes */}
                 {pc.blackboard_notes && (
-                  <div style={{ background: '#090d16', padding: '1rem', borderRadius: '6px', borderLeft: '4px solid #10b981' }}>
-                    <strong style={{ color: '#94a3b8', fontSize: '0.85rem' }}>BLACKBOARD / SLIDE OUTLINE:</strong>
-                    <p style={{ color: '#10b981', fontFamily: 'monospace', marginTop: '0.5rem' }}>{Array.isArray(pc.blackboard_notes) ? pc.blackboard_notes.join('\n') : pc.blackboard_notes}</p>
+                  <div style={{ background: '#090d16', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #10b981', marginBottom: '1rem' }}>
+                    <strong style={{ color: '#10b981', fontSize: '0.85rem' }}>📋 BLACKBOARD / SLIDE DIAGRAM:</strong>
+                    <pre style={{ color: '#10b981', fontFamily: 'monospace', margin: '0.5rem 0 0 0', fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>
+                      {pc.blackboard_notes}
+                    </pre>
+                  </div>
+                )}
+
+                {/* Exit Ticket */}
+                {pc.exit_ticket && (
+                  <div style={{ background: '#090d16', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #f59e0b' }}>
+                    <strong style={{ color: '#f59e0b', fontSize: '0.85rem' }}>🚪 EXIT TICKET CHECK:</strong>
+                    <p style={{ color: '#f1f5f9', margin: '0.3rem 0 0 0', fontSize: '0.95rem' }}>{pc.exit_ticket.question}</p>
+                    <p style={{ color: '#94a3b8', margin: '0.3rem 0 0 0', fontSize: '0.85rem' }}>Expected Answer: {pc.exit_ticket.expected_answer}</p>
                   </div>
                 )}
               </div>
@@ -178,13 +243,52 @@ const ResultsPage = () => {
         {/* ACTIVITIES TAB */}
         {activeTab === 'activities' && (
           <div>
-            <h3 style={{ color: '#38bdf8', marginTop: 0 }}>Engaging In-Class Activities</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
+            <h3 style={{ color: '#38bdf8', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Activity size={20} /> Engaging In-Class Activities & Experiments
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.2rem' }}>
               {activities.map((act, idx) => (
-                <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <h4 style={{ margin: '0 0 0.4rem 0', color: '#f8fafc' }}>{act.title || act.activity_name || `Activity ${idx+1}`}</h4>
-                  <span style={{ fontSize: '0.8rem', background: '#334155', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#38bdf8' }}>{act.activity_type || 'Interactive'} | {act.duration_minutes || 15} mins</span>
-                  <p style={{ fontSize: '0.9rem', color: '#cbd5e1', marginTop: '0.8rem' }}><strong>Instructions:</strong> {act.instructions || act.description}</p>
+                <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.4rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <h4 style={{ margin: '0 0 0.4rem 0', color: '#f8fafc', fontSize: '1.1rem' }}>
+                    {act.title || `Activity ${idx+1}`}
+                  </h4>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.8rem' }}>
+                    <span style={{ fontSize: '0.75rem', background: '#334155', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#38bdf8' }}>
+                      {act.type || 'Interactive'}
+                    </span>
+                    <span style={{ fontSize: '0.75rem', background: '#334155', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#818cf8' }}>
+                      <Clock size={12} style={{ display: 'inline', marginRight: '3px' }} />
+                      {act.duration_minutes || 15} mins
+                    </span>
+                  </div>
+                  
+                  {/* Instructions */}
+                  <div style={{ marginTop: '0.8rem' }}>
+                    <strong style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Student Instructions:</strong>
+                    <p style={{ fontSize: '0.9rem', color: '#f1f5f9', margin: '0.3rem 0 0.8rem 0', lineHeight: '1.5' }}>
+                      {act.student_instructions || (act.teacher_instructions && act.teacher_instructions[0]) || 'Engage students in hands-on application of concepts.'}
+                    </p>
+                  </div>
+
+                  {act.teacher_instructions && act.teacher_instructions.length > 0 && (
+                    <div style={{ marginTop: '0.6rem' }}>
+                      <strong style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Teacher Guidance:</strong>
+                      <ul style={{ margin: '0.3rem 0', paddingLeft: '1.2rem', color: '#cbd5e1', fontSize: '0.85rem' }}>
+                        {act.teacher_instructions.map((tInst, tIdx) => (
+                          <li key={tIdx}>{tInst}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {act.materials_needed && act.materials_needed.length > 0 && (
+                    <div style={{ marginTop: '0.6rem' }}>
+                      <strong style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Materials:</strong>
+                      <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: '#38bdf8' }}>
+                        {act.materials_needed.join(', ')}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -199,14 +303,45 @@ const ResultsPage = () => {
         {/* GAPS TAB */}
         {activeTab === 'gaps' && (
           <div>
-            <h3 style={{ color: '#38bdf8', marginTop: 0 }}>Misconception Diagnosis & Interventions</h3>
-            {((gaps.misconceptions) || []).map((m, idx) => (
-              <div key={idx} style={{ background: 'rgba(239, 68, 68, 0.05)', padding: '1.2rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#f87171' }}>⚠️ Misconception: {typeof m === 'string' ? m : m.misconception}</h4>
-                <p style={{ color: '#fca5a5', fontSize: '0.9rem', margin: '0.4rem 0' }}><strong>Diagnostic Check:</strong> {typeof m === 'string' ? 'Ask conceptual questions.' : m.diagnostic_question}</p>
-                <p style={{ color: '#86efac', fontSize: '0.9rem', margin: '0.4rem 0' }}><strong>Teacher Remediation:</strong> {typeof m === 'string' ? 'Provide visual demonstration.' : m.remedial_strategy}</p>
-              </div>
-            ))}
+            <h3 style={{ color: '#38bdf8', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertTriangle size={20} color="#f87171" /> Misconception Diagnostics & Remedial Action
+            </h3>
+            {gapsList.length > 0 ? (
+              gapsList.map((g, idx) => (
+                <div key={idx} style={{ background: 'rgba(239, 68, 68, 0.04)', padding: '1.3rem', borderRadius: '10px', marginBottom: '1.2rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    <h4 style={{ margin: 0, color: '#f87171', fontSize: '1.05rem' }}>
+                      ⚠️ {g.concept}: {g.misconception}
+                    </h4>
+                    <span style={{ fontSize: '0.75rem', background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
+                      Severity: {g.severity || 'Medium'}
+                    </span>
+                  </div>
+
+                  {g.why_students_think_this && (
+                    <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: '0.4rem 0' }}>
+                      <strong style={{ color: '#94a3b8' }}>Root Cause:</strong> {g.why_students_think_this}
+                    </p>
+                  )}
+
+                  {g.diagnostic_question && (
+                    <div style={{ background: '#090d16', padding: '0.8rem', borderRadius: '6px', margin: '0.6rem 0', borderLeft: '3px solid #818cf8' }}>
+                      <strong style={{ color: '#818cf8', fontSize: '0.85rem' }}>Diagnostic Check Question:</strong>
+                      <p style={{ margin: '0.2rem 0 0 0', color: '#f1f5f9', fontSize: '0.9rem' }}>{g.diagnostic_question}</p>
+                    </div>
+                  )}
+
+                  {g.remedial_action && (
+                    <div style={{ background: '#090d16', padding: '0.8rem', borderRadius: '6px', margin: '0.6rem 0', borderLeft: '3px solid #10b981' }}>
+                      <strong style={{ color: '#10b981', fontSize: '0.85rem' }}>Teacher Remediation Strategy:</strong>
+                      <p style={{ margin: '0.2rem 0 0 0', color: '#86efac', fontSize: '0.9rem' }}>{g.remedial_action}</p>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>No learning gaps detected in this module.</p>
+            )}
           </div>
         )}
 
