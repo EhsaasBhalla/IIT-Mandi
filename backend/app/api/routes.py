@@ -1,14 +1,12 @@
 import os
 import hashlib
-from flask import Blueprint, request, jsonify
-from werkzeug.utils import secure_filename
-from ..orchestrator.job_manager import job_manager
-from ..config import Config
+from flask import Blueprint, request, jsonify, send_file
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(Config.CACHE_FOLDER, exist_ok=True)
+os.makedirs(Config.OUTPUT_FOLDER, exist_ok=True)
 
 @api_bp.route('/upload', methods=['POST'])
 def upload_file():
@@ -61,3 +59,20 @@ def get_result(job_id):
     if status_data.get("status") == "completed":
         return jsonify({"result": status_data.get("result")}), 200
     return jsonify({"error": "Job not completed or not found"}), 400
+
+@api_bp.route('/download/<job_id>/pdf', methods=['GET'])
+def download_pdf(job_id):
+    pdf_path = os.path.join(Config.OUTPUT_FOLDER, f"TKP_{job_id}.pdf")
+    if os.path.exists(pdf_path):
+        return send_file(pdf_path, as_attachment=True, download_name=f"Teacher_Knowledge_Package_{job_id[:8]}.pdf")
+    
+    # Fallback: check if job result exists and generate PDF on the fly
+    status_data = job_manager.get_job_status(job_id)
+    if status_data.get("status") == "completed" and status_data.get("result"):
+        from ..stages.s10_publishing import PublishingStage
+        s10 = PublishingStage(job_id)
+        s10.execute(status_data.get("result"))
+        if os.path.exists(pdf_path):
+            return send_file(pdf_path, as_attachment=True, download_name=f"Teacher_Knowledge_Package_{job_id[:8]}.pdf")
+            
+    return jsonify({"error": "PDF not ready or job incomplete"}), 404

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { BookOpen, FileText, CheckCircle2, AlertTriangle, Download, ArrowLeft, Layers, HelpCircle, Activity } from 'lucide-react';
+import { BookOpen, FileText, CheckCircle2, AlertTriangle, Download, ArrowLeft, Layers, HelpCircle, Activity, FileDown } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
+import TKPViewer from '../../components/TKPViewer/TKPViewer';
+import ABTestView from '../../components/ABTestView/ABTestView';
 import './ResultsPage.css';
 
 const ResultsPage = () => {
@@ -36,8 +38,12 @@ const ResultsPage = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `TKP_Package_${jobId}.json`;
+    a.download = `TKP_Package_${jobId.slice(0, 8)}.json`;
     a.click();
+  };
+
+  const handleDownloadPDF = () => {
+    window.open(`${API_BASE_URL}/api/download/${jobId}/pdf`, '_blank');
   };
 
   if (loading) {
@@ -66,9 +72,7 @@ const ResultsPage = () => {
   const lessonPlan = data.lesson_plan || {};
   const periodContents = data.period_contents || [];
   const activities = data.activities || [];
-  const assessments = data.ab_test_assessment || data.assessments || {};
   const gaps = data.gap_analysis || {};
-  const validation = data.validation_report || data.validation || {};
 
   return (
     <div className="results-page animate-fade-in">
@@ -78,17 +82,33 @@ const ResultsPage = () => {
             <ArrowLeft size={16} /> Upload Another Document
           </Link>
           <h2>{classification.subject || 'Curriculum'} — {classification.topic || 'Teacher Knowledge Package'}</h2>
-          <p className="subtitle">Grade {classification.target_grade || 'K-12'} | {classification.curriculum_board || 'CBSE/NCERT'} | {lessonPlan.total_periods || periodContents.length || 3} Teaching Periods</p>
+          <p className="subtitle">Grade {classification.target_grade || classification.grade_level || 'K-12'} | {classification.curriculum_board || 'CBSE/NCERT'} | {lessonPlan.total_periods || periodContents.length || 3} Teaching Periods</p>
         </div>
-        <button onClick={handleDownloadJSON} className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#38bdf8', color: '#0f172a', fontWeight: 600, padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', border: 'none' }}>
-          <Download size={18} /> Export TKP (JSON)
-        </button>
+        
+        {/* Export Buttons */}
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+          <button 
+            onClick={handleDownloadPDF} 
+            className="btn" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#e11d48', color: '#ffffff', fontWeight: 600, padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', border: 'none' }}
+          >
+            <FileDown size={18} /> Download PDF
+          </button>
+          
+          <button 
+            onClick={handleDownloadJSON} 
+            className="btn" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#38bdf8', color: '#0f172a', fontWeight: 600, padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', border: 'none' }}
+          >
+            <Download size={18} /> Export JSON
+          </button>
+        </div>
       </div>
 
-      {/* Tabs */}
+      {/* Navigation Tabs */}
       <div className="tabs" style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', margin: '1.5rem 0' }}>
         {[
-          { id: 'overview', label: 'Overview & Objectives', icon: BookOpen },
+          { id: 'overview', label: 'Interactive Knowledge Graph', icon: BookOpen },
           { id: 'lesson_plan', label: 'Lesson Plan & Sequence', icon: Layers },
           { id: 'scripts', label: 'Teacher Scripts & Content', icon: FileText },
           { id: 'activities', label: 'Class Activities', icon: Activity },
@@ -112,26 +132,10 @@ const ResultsPage = () => {
 
       {/* Tab Content */}
       <div className="tab-content glass-panel" style={{ padding: '1.5rem', borderRadius: '12px', background: 'rgba(15, 23, 42, 0.75)', border: '1px solid rgba(255,255,255,0.08)' }}>
-        {/* OVERVIEW TAB */}
+        
+        {/* INTERACTIVE KNOWLEDGE GRAPH TAB */}
         {activeTab === 'overview' && (
-          <div>
-            <h3 style={{ color: '#38bdf8', marginTop: 0 }}>Core Learning Objectives</h3>
-            <ul style={{ lineHeight: '1.8', color: '#e2e8f0' }}>
-              {(knowledge.learning_objectives || ['Understand fundamental definitions', 'Apply core concepts to real problems']).map((obj, i) => (
-                <li key={i}>{typeof obj === 'string' ? obj : obj.objective || JSON.stringify(obj)}</li>
-              ))}
-            </ul>
-
-            <h3 style={{ color: '#38bdf8', marginTop: '1.5rem' }}>Key Concepts & Formulae</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-              {(knowledge.concepts || []).map((c, i) => (
-                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#f8fafc' }}>{typeof c === 'string' ? c : c.name}</h4>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8' }}>{typeof c === 'string' ? '' : c.definition || c.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <TKPViewer data={data} />
         )}
 
         {/* LESSON PLAN TAB */}
@@ -140,8 +144,9 @@ const ResultsPage = () => {
             <h3 style={{ color: '#38bdf8', marginTop: 0 }}>Multi-Period Lesson Breakdown</h3>
             {(lessonPlan.periods || []).map((p, idx) => (
               <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#818cf8' }}>Period {p.period_number || idx + 1}: {p.topic || p.theme} ({p.duration_minutes || 45} mins)</h4>
+                <h4 style={{ margin: '0 0 0.5rem 0', color: '#818cf8' }}>Period {p.period_number || idx + 1}: {p.title || p.topic || p.theme} ({p.duration_minutes || 45} mins)</h4>
                 <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: '0.4rem 0' }}><strong>Objectives:</strong> {Array.isArray(p.objectives) ? p.objectives.join(', ') : p.objectives}</p>
+                <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: '0.4rem 0' }}><strong>Methodology:</strong> {p.teaching_methodology || 'Interactive lecture & problem solving'}</p>
                 <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: '0.4rem 0' }}><strong>Key Takeaway:</strong> {p.key_takeaway || 'Core understanding of topics.'}</p>
               </div>
             ))}
@@ -156,7 +161,7 @@ const ResultsPage = () => {
               <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <h4 style={{ margin: '0 0 0.8rem 0', color: '#38bdf8' }}>Period {pc.period_number || idx + 1}: Teacher Delivery Script</h4>
                 <div style={{ background: '#090d16', padding: '1rem', borderRadius: '6px', borderLeft: '4px solid #38bdf8', marginBottom: '1rem' }}>
-                  <strong style={{ color: '#94a3b8', fontSize: '0.85rem' }}>TEACHER VERBATIM SCRIPT:</strong>
+                  <strong style={{ color: '#94a3b8', fontSize: '0.85rem' }}>TEACHER SCRIPT:</strong>
                   <p style={{ color: '#f1f5f9', whiteSpace: 'pre-line', marginTop: '0.5rem', lineHeight: '1.6' }}>{pc.teacher_script || 'Lecture outline and explanations.'}</p>
                 </div>
                 {pc.blackboard_notes && (
@@ -186,40 +191,9 @@ const ResultsPage = () => {
           </div>
         )}
 
-        {/* ASSESSMENTS TAB */}
+        {/* ASSESSMENTS TAB (A/B Test) */}
         {activeTab === 'assessments' && (
-          <div>
-            <h3 style={{ color: '#38bdf8', marginTop: 0 }}>Differentiated A/B Test Assessments</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-              {/* Variant A */}
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.2rem', borderRadius: '8px', border: '1px solid #3b82f6' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h4 style={{ margin: 0, color: '#60a5fa' }}>Variant A (Standard)</h4>
-                  <span style={{ fontSize: '0.75rem', background: '#1e3a8a', color: '#93c5fd', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>Baseline</span>
-                </div>
-                {((assessments.variant_a && assessments.variant_a.questions) || []).map((q, qIdx) => (
-                  <div key={qIdx} style={{ background: '#090d16', padding: '0.8rem', borderRadius: '6px', marginBottom: '0.8rem' }}>
-                    <p style={{ margin: '0 0 0.4rem 0', fontWeight: 600, color: '#f1f5f9' }}>Q{qIdx + 1}. {q.question || q.text}</p>
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#10b981' }}><strong>Ans:</strong> {q.correct_answer || q.answer}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Variant B */}
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.2rem', borderRadius: '8px', border: '1px solid #8b5cf6' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h4 style={{ margin: 0, color: '#a78bfa' }}>Variant B (Deep Reasoning)</h4>
-                  <span style={{ fontSize: '0.75rem', background: '#4c1d95', color: '#c4b5fd', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>Higher Bloom Level</span>
-                </div>
-                {((assessments.variant_b && assessments.variant_b.questions) || []).map((q, qIdx) => (
-                  <div key={qIdx} style={{ background: '#090d16', padding: '0.8rem', borderRadius: '6px', marginBottom: '0.8rem' }}>
-                    <p style={{ margin: '0 0 0.4rem 0', fontWeight: 600, color: '#f1f5f9' }}>Q{qIdx + 1}. {q.question || q.text}</p>
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#10b981' }}><strong>Ans:</strong> {q.correct_answer || q.answer}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <ABTestView data={data} />
         )}
 
         {/* GAPS TAB */}
