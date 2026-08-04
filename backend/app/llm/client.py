@@ -13,38 +13,62 @@ logger = logging.getLogger(__name__)
 
 class LLMClient:
     def __init__(self, provider=None, custom_key=None):
-        self.provider = provider or Config.LLM_PROVIDER
         self.api_key = custom_key
         
-        if self.provider == 'gemini':
-            os.environ["GEMINI_API_KEY"] = Config.GEMINI_API_KEY or ""
-            self.model_name = "gemini/gemini-2.0-flash"
-            self.fallback_model = "gemini/gemini-2.0-flash-lite"
-            self.client = instructor.from_litellm(litellm.completion)
-        elif self.provider == 'groq':
-            groq_key = self.api_key or Config.GROQ_API_KEY or ""
-            os.environ["GROQ_API_KEY"] = groq_key
-            self.model_name = "llama-3.1-8b-instant"
-            self.fallback_model = "llama-3.3-70b-versatile"
-            groq_client = OpenAI(
-                base_url="https://api.groq.com/openai/v1",
-                api_key=groq_key
-            )
-            self.client = instructor.from_openai(groq_client, mode=instructor.Mode.JSON)
-        elif self.provider == 'openai':
-            self.model_name = "gpt-4o-mini"
-            self.fallback_model = None
-            self.client = instructor.from_litellm(litellm.completion)
-        elif self.provider == 'huggingface':
-            self.model_name = "deepseek-ai/DeepSeek-V4-Pro:novita"
-            self.fallback_model = None
-            hf_client = OpenAI(
-                base_url="https://router.huggingface.co/v1",
-                api_key=self.api_key or Config.HUGGINGFACE_API_KEY
-            )
-            self.client = instructor.from_openai(hf_client, mode=instructor.Mode.JSON)
+        # Determine available providers based on keys
+        self.available_providers = []
+        if Config.GEMINI_API_KEY or (provider == 'gemini' and custom_key):
+            self.available_providers.append('gemini')
+        if Config.GROQ_API_KEY or (provider == 'groq' and custom_key):
+            self.available_providers.append('groq')
+        if Config.OPENAI_API_KEY or (provider == 'openai' and custom_key):
+            self.available_providers.append('openai')
+        if Config.HUGGINGFACE_API_KEY or (provider == 'huggingface' and custom_key):
+            self.available_providers.append('huggingface')
+            
+        # Default fallback order if auto
+        default_order = ['gemini', 'groq', 'openai', 'huggingface']
+        
+        # Determine primary provider
+        if provider and provider in self.available_providers:
+            self.primary_provider = provider
+        elif provider and provider != 'auto':
+            # Provider requested but no key, try anyway (might be in env)
+            self.primary_provider = provider
+            self.available_providers.insert(0, provider)
+        elif self.available_providers:
+            # Auto-select best available
+            for p in default_order:
+                if p in self.available_providers:
+                    self.primary_provider = p
+                    break
         else:
-            raise ValueError(f"Unsupported LLM provider: {self.provider}")
+            # Fallback to config default
+            self.primary_provider = Config.LLM_PROVIDER
+
+        # Reorder available providers to start with primary
+        if self.primary_provider in self.available_providers:
+            self.available_providers.remove(self.primary_provider)
+        self.available_providers.insert(0, self.primary_provider)
+
+    def _setup_client_for_provider(self, provider: str):
+        if provider == 'gemini':
+            os.environ["GEMINI_API_KEY"] = self.api_key if self.primary_provider == 'gemini' and self.api_key else (Config.GEMINI_API_KEY or "")
+            return instructor.from_litellm(litellm.completion), "gemini/gemini-2.0-flash", "gemini/gemini-2.0-flash-lite"
+        elif provider == 'groq':
+            groq_key = self.api_key if self.primary_provider == 'groq' and self.api_key else (Config.GROQ_API_KEY or "")
+            os.environ["GROQ_API_KEY"] = groq_key
+            groq_client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=groq_key)
+            return instructor.from_openai(groq_client, mode=instructor.Mode.JSON), "llama-3.1-8b-instant", "llama-3.3-70b-versatile"
+        elif provider == 'openai':
+            os.environ["OPENAI_API_KEY"] = self.api_key if self.primary_provider == 'openai' and self.api_key else (Config.OPENAI_API_KEY or "")
+            return instructor.from_litellm(litellm.completion), "gpt-4o-mini", None
+        elif provider == 'huggingface':
+            hf_key = self.api_key if self.primary_provider == 'huggingface' and self.api_key else (Config.HUGGINGFACE_API_KEY or "")
+            hf_client = OpenAI(base_url="https://router.huggingface.co/v1", api_key=hf_key)
+            return instructor.from_openai(hf_client, mode=instructor.Mode.JSON), "deepseek-ai/DeepSeek-V4-Pro:novita", None
+        else:
+            raise ValueError(f"Unsupported LLM provider: {provider}")
 
     def generate_structured(
         self, 
@@ -55,107 +79,90 @@ class LLMClient:
         language: str = "English"
     ) -> T:
         """
-        Generates a structured Pydantic model response from the LLM.
-        
-        Token budget strategy:
-        - Gemini: 15 RPM free tier, generous token limits → use full prompts, high max_tokens
-        - HuggingFace: Good limits → use full prompts
-        - Groq: 6,000 TPM free tier → compress prompts, lower max_tokens, add pacing
+        Generates a structured Pydantic model response from the LLM, with cross-provider fallback.
         """
-        # Inject Multilingual Support
         if language and language.lower() != "english":
             system_prompt += f"\n\nCRITICAL: Generate ALL output exclusively in {language}. Localize educational terminology."
 
-        # QUALITY INSTRUCTION: Tell the LLM to be thorough
         system_prompt += "\n\nIMPORTANT: Provide DETAILED, COMPREHENSIVE responses. Each field should contain substantial, useful content — not placeholder text. For teacher scripts, write full multi-paragraph lecture guides. For questions, write complete questions with thorough explanations. For activities, include full step-by-step instructions."
 
-        # Provider-specific token budgets
-        if self.provider == 'groq':
-            # Groq 6,000 TPM: be conservative
-            max_prompt_chars = 3500
-            max_tokens_val = 1800
-            pace_seconds = 4
-        elif self.provider == 'gemini':
-            # Gemini free tier: 15 RPM, 1M tokens/min → generous
-            max_prompt_chars = 30000
-            max_tokens_val = 8192
-            pace_seconds = 5  # Stay under 15 RPM
-        elif self.provider == 'huggingface':
-            # HuggingFace: reasonable limits
-            max_prompt_chars = 20000
-            max_tokens_val = 4096
-            pace_seconds = 2
-        else:
-            max_prompt_chars = 15000
-            max_tokens_val = 4096
-            pace_seconds = 1
-
-        # Pace requests
-        time.sleep(pace_seconds)
-
-        # Truncate prompt if needed
-        if len(prompt) > max_prompt_chars:
-            prompt = prompt[:max_prompt_chars] + "\n\n[Content truncated for processing efficiency. Focus on the material above.]"
-            logger.info(f"Prompt truncated to {max_prompt_chars} chars for {self.provider}")
-
-        kwargs = {
-            "model": self.model_name,
-            "response_model": response_model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": temperature,
-            "max_tokens": max_tokens_val
-        }
-
-        # Try primary model, then fallback, with retries
-        models_to_try = [self.model_name]
-        if self.fallback_model and self.fallback_model != self.model_name:
-            models_to_try.append(self.fallback_model)
-        
         last_error = None
-        for model in models_to_try:
-            kwargs["model"] = model
-            for attempt in range(3):
-                try:
-                    response = self.client.chat.completions.create(**kwargs)
-                    return response
-                except Exception as e:
-                    last_error = e
-                    error_str = str(e)
-                    is_rate_limit = any(k in error_str.lower() for k in ["429", "413", "rate_limit", "resource_exhausted", "tokens per minute", "tpm"])
-                    
-                    if is_rate_limit:
-                        if "413" in error_str or "tokens" in error_str.lower():
-                            logger.warning(f"Token limit on {model}. Reducing budget...")
-                            kwargs["max_tokens"] = min(kwargs["max_tokens"], 1200)
-                            if len(kwargs["messages"][1]["content"]) > 2500:
-                                kwargs["messages"][1]["content"] = kwargs["messages"][1]["content"][:2500]
-                        
-                        wait = 15 * (attempt + 1)
-                        logger.warning(f"{model} rate limit (attempt {attempt+1}/3). Waiting {wait}s...")
-                        time.sleep(wait)
-                    else:
-                        logger.error(f"{model} error: {error_str[:200]}")
-                        break
-            
-            if self.fallback_model and model != self.fallback_model:
-                logger.warning(f"Switching to fallback: {self.fallback_model}")
-                time.sleep(5)
-        
-        # Cross-provider fallback: if primary provider fails, try Gemini
-        if self.provider != 'gemini' and Config.GEMINI_API_KEY:
-            try:
-                logger.warning(f"{self.provider} exhausted. Falling back to Gemini 2.0 Flash...")
-                os.environ["GEMINI_API_KEY"] = Config.GEMINI_API_KEY
-                gemini_client = instructor.from_litellm(litellm.completion)
-                kwargs["model"] = "gemini/gemini-2.0-flash"
-                kwargs["max_tokens"] = 8192
-                # Restore full prompt for Gemini
-                kwargs["messages"][1]["content"] = prompt[:30000]
-                return gemini_client.chat.completions.create(**kwargs)
-            except Exception as ge:
-                logger.error(f"Gemini fallback error: {ge}")
 
-        raise last_error
+        # Try each available provider in order (primary first, then fallbacks)
+        for current_provider in self.available_providers:
+            logger.info(f"Attempting generation with provider: {current_provider}")
+            
+            try:
+                client, model_name, fallback_model = self._setup_client_for_provider(current_provider)
+            except Exception as e:
+                logger.error(f"Setup error for {current_provider}: {e}")
+                continue
+
+            if current_provider == 'groq':
+                max_prompt_chars, max_tokens_val, pace_seconds = 3500, 1800, 4
+            elif current_provider == 'gemini':
+                max_prompt_chars, max_tokens_val, pace_seconds = 30000, 8192, 5
+            elif current_provider == 'huggingface':
+                max_prompt_chars, max_tokens_val, pace_seconds = 20000, 4096, 2
+            else:
+                max_prompt_chars, max_tokens_val, pace_seconds = 15000, 4096, 1
+
+            time.sleep(pace_seconds)
+
+            current_prompt = prompt
+            if len(current_prompt) > max_prompt_chars:
+                current_prompt = current_prompt[:max_prompt_chars] + "\n\n[Content truncated for processing efficiency. Focus on the material above.]"
+                logger.info(f"Prompt truncated to {max_prompt_chars} chars for {current_provider}")
+
+            kwargs = {
+                "model": model_name,
+                "response_model": response_model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": current_prompt}
+                ],
+                "temperature": temperature,
+                "max_tokens": max_tokens_val
+            }
+
+            models_to_try = [model_name]
+            if fallback_model and fallback_model != model_name:
+                models_to_try.append(fallback_model)
+            
+            provider_success = False
+            for model in models_to_try:
+                kwargs["model"] = model
+                for attempt in range(3):
+                    try:
+                        response = client.chat.completions.create(**kwargs)
+                        return response
+                    except Exception as e:
+                        last_error = e
+                        error_str = str(e)
+                        is_rate_limit = any(k in error_str.lower() for k in ["429", "413", "rate_limit", "resource_exhausted", "tokens per minute", "tpm"])
+                        
+                        if is_rate_limit:
+                            if "413" in error_str or "tokens" in error_str.lower():
+                                logger.warning(f"Token limit on {model}. Reducing budget...")
+                                kwargs["max_tokens"] = min(kwargs["max_tokens"], 1200)
+                                if len(kwargs["messages"][1]["content"]) > 2500:
+                                    kwargs["messages"][1]["content"] = kwargs["messages"][1]["content"][:2500]
+                            
+                            wait = 15 * (attempt + 1)
+                            logger.warning(f"{model} rate limit (attempt {attempt+1}/3). Waiting {wait}s...")
+                            time.sleep(wait)
+                        else:
+                            logger.error(f"{model} error: {error_str[:200]}")
+                            break # Break retry loop, try next model for this provider
+                
+                if provider_success:
+                    break
+                if fallback_model and model != fallback_model:
+                    logger.warning(f"Switching to intra-provider fallback: {fallback_model}")
+                    time.sleep(5)
+            
+            # If we reach here and provider_success is False, it means this provider failed completely.
+            # The outer loop will continue to the next provider.
+            logger.warning(f"Provider {current_provider} exhausted. Moving to next provider...")
+
+        raise Exception(f"All available LLM providers failed. Last error: {last_error}")
