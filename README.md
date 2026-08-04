@@ -21,54 +21,66 @@ Each output is governed by strictly typed **Pydantic schemas**, featuring:
 
 ```mermaid
 graph TB
-    subgraph Frontend["Frontend (React + Vite) — Deployed on Vercel"]
-        UI[Upload & Config]
-        PP[Real-time Stage Progress]
-        RP[Knowledge & Assessment Viewer]
-        HP[Historical Jobs Manager]
+    subgraph Frontend["Frontend (React + Vite)"]
+        UI[Upload Page]
+        PP[Progress Page]
+        RP[Results Page]
+        HP[History Page]
     end
 
-    subgraph Backend["Backend (Flask + Python) — Deployed on Render"]
-        API[REST API Blueprint]
-        JM[Job Manager & State Machine]
+    subgraph Backend["Backend (Flask + Python)"]
+        API[REST API Layer<br/>Flask Blueprint]
+        JM[Job Manager<br/>Thread Pool + Cache]
         PO[Pipeline Orchestrator]
         
-        subgraph Stages["10-Stage Sequential Engine"]
-            S1[1. Doc Intelligence (PyPDF2)]
-            S2[2. Educational Classification]
-            S3[3. Knowledge Extraction]
-            S4[4. Multi-Period Lesson Planning]
-            S5[5. Content & Scripts Generation]
-            S6[6. Activity Design]
-            S7[7. Assessment & A/B Testing]
-            S8[8. Misconception & Gap Analysis]
-            S9[9. Validation & Quality Engine]
-            S10[10. Packaging & Publishing]
+        subgraph Pipeline["10-Stage Pipeline"]
+            S1[S1: Document Intelligence]
+            S2[S2: Educational Classification]
+            S3[S3: Knowledge Extraction]
+            S4[S4: Lesson Planning]
+            S5[S5: Content Generation]
+            S6[S6: Activity Design]
+            S7[S7: Assessment Generation]
+            S8[S8: Gap Analysis]
+            S9[S9: Validation Engine]
+            S10[S10: Publishing]
         end
 
-        subgraph LLM["LLM Client & Resilience"]
-            LLM_C[Groq / Gemini / OpenAI Client]
-            RETRY[Exponential Backoff with Jitter]
-            PACE[Dynamic Request Pacing]
+        subgraph LLMLayer["LLM Abstraction Layer"]
+            LC[LLM Client<br/>litellm + instructor]
+            RT[Retry Engine<br/>Exponential Backoff]
+            FB[Model Fallback<br/>Primary → Lite]
         end
 
-        subgraph Storage["Persistence Layer"]
-            CACHE[Disk Cache (storage/cache/)]
-            INDEX[_jobs_index.json]
+        subgraph Storage["Persistent Storage"]
+            CF[Cache Files<br/>Per-Stage JSON]
+            JI[Jobs Index<br/>History Persistence]
+            UF[Upload Storage]
         end
+    end
+
+    subgraph Providers["LLM Providers"]
+        GQ[Groq<br/>llama-3.3-70b]
+        GM[Gemini<br/>2.0-flash]
+        OA[OpenAI<br/>gpt-4o-mini]
+        HF[HuggingFace<br/>DeepSeek]
     end
 
     UI -->|POST /api/upload| API
-    PP -->|GET /api/status/:id| API
-    RP -->|GET /api/result/:id| API
+    PP -->|GET /api/status| API
+    RP -->|GET /api/result| API
     HP -->|GET /api/jobs| API
 
     API --> JM
     JM --> PO
     PO --> S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8 --> S9 --> S10
-    S2 & S3 & S4 & S5 & S6 & S7 & S8 & S9 --> LLM_C
-    LLM_C --> RETRY --> PACE
-    JM --> CACHE & INDEX
+
+    S2 & S3 & S4 & S5 & S6 & S7 & S8 & S9 --> LC
+    LC --> RT --> FB
+    FB --> GQ & GM & OA & HF
+
+    JM --> CF & JI
+    S1 -->|PyPDF2| UF
 ```
 
 ---
