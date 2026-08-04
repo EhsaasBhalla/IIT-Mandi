@@ -43,6 +43,9 @@ class JobManager:
                     "progress": job["progress"],
                     "stage": job.get("stage", ""),
                     "language": job.get("language", "English"),
+                    "subject": job.get("subject", ""),
+                    "topic": job.get("topic", ""),
+                    "target_grade": job.get("target_grade", ""),
                     "created_at": job.get("created_at", 0),
                     "file_hash": job.get("file_hash", ""),
                     "error": job.get("error")
@@ -135,7 +138,11 @@ class JobManager:
                 s2 = EducationalClassificationStage(job_id, config={"language": language})
                 classification = s2.execute(state['doc_intel'])
                 state['classification'] = classification.model_dump()
+                self.jobs[job_id]["subject"] = classification.subject
+                self.jobs[job_id]["topic"] = classification.topic
+                self.jobs[job_id]["target_grade"] = classification.target_grade
                 save_state()
+                self._save_jobs_index()
                 logger.info("Stage 2 complete: Classification done")
             else:
                 logger.info("Stage 2 skipped (cached)")
@@ -313,6 +320,9 @@ class JobManager:
                 "progress": j["progress"],
                 "stage": j.get("stage", ""),
                 "language": j.get("language", "English"),
+                "subject": j.get("subject", ""),
+                "topic": j.get("topic", ""),
+                "target_grade": j.get("target_grade", ""),
                 "created_at": j.get("created_at", 0)
             }
             for j in sorted(self.jobs.values(), key=lambda x: x.get("created_at", 0), reverse=True)
