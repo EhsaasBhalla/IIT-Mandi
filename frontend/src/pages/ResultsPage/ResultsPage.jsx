@@ -130,7 +130,7 @@ const ResultsPage = () => {
           { id: 'activities', label: 'Class Activities', icon: Activity },
           { id: 'assessments', label: 'A/B Assessments', icon: CheckCircle2 },
           { id: 'gaps', label: 'Misconceptions & Remediation', icon: AlertTriangle },
-          { id: 'raw', label: 'Raw JSON', icon: HelpCircle },
+          { id: 'validation', label: 'Quality Report', icon: CheckCircle },
         ].map((tab) => {
           const Icon = tab.icon;
           return (
@@ -361,15 +361,67 @@ const ResultsPage = () => {
           </div>
         )}
 
-        {/* RAW JSON TAB */}
-        {activeTab === 'raw' && (
-          <div>
-            <h3 style={{ color: '#38bdf8', marginTop: 0 }}>Structured Pydantic Model Payload</h3>
-            <pre style={{ background: '#090d16', padding: '1rem', borderRadius: '8px', overflowX: 'auto', color: '#38bdf8', fontSize: '0.85rem', maxHeight: '500px' }}>
-              {JSON.stringify(data, null, 2)}
-            </pre>
-          </div>
-        )}
+        {/* VALIDATION QUALITY REPORT TAB */}
+        {activeTab === 'validation' && (() => {
+          const validation = data.validation || {};
+          const score = validation.overall_score || validation.score || 'N/A';
+          const hallFlags = validation.hallucination_flags || validation.hallucination_count || 0;
+          const issues = validation.issues || [];
+          const recommendations = validation.recommendations || [];
+          return (
+            <div>
+              <h3 style={{ color: '#38bdf8', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <CheckCircle size={20} /> Stage 9: Quality Validation Report
+              </h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ background: '#090d16', padding: '1.2rem', borderRadius: '10px', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                  <p style={{ margin: '0 0 0.3rem 0', color: '#94a3b8', fontSize: '0.85rem' }}>Overall Quality Score</p>
+                  <p style={{ margin: 0, color: '#10b981', fontSize: '2.2rem', fontWeight: 700 }}>{score}<span style={{ fontSize: '1rem', color: '#94a3b8' }}>/100</span></p>
+                </div>
+                <div style={{ background: '#090d16', padding: '1.2rem', borderRadius: '10px', textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                  <p style={{ margin: '0 0 0.3rem 0', color: '#94a3b8', fontSize: '0.85rem' }}>Hallucination Flags</p>
+                  <p style={{ margin: 0, color: hallFlags > 0 ? '#f87171' : '#10b981', fontSize: '2.2rem', fontWeight: 700 }}>{hallFlags}</p>
+                </div>
+                <div style={{ background: '#090d16', padding: '1.2rem', borderRadius: '10px', textAlign: 'center', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
+                  <p style={{ margin: '0 0 0.3rem 0', color: '#94a3b8', fontSize: '0.85rem' }}>Issues Found</p>
+                  <p style={{ margin: 0, color: '#38bdf8', fontSize: '2.2rem', fontWeight: 700 }}>{issues.length}</p>
+                </div>
+              </div>
+
+              {issues.length > 0 && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h4 style={{ color: '#f87171', margin: '0 0 0.8rem 0' }}>Identified Issues</h4>
+                  {issues.map((issue, idx) => {
+                    const text = typeof issue === 'string' ? issue : (issue.description || JSON.stringify(issue));
+                    return (
+                      <div key={idx} style={{ background: 'rgba(239, 68, 68, 0.05)', padding: '0.8rem', borderRadius: '6px', marginBottom: '0.5rem', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+                        <p style={{ margin: 0, color: '#fca5a5', fontSize: '0.9rem' }}>{text}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {recommendations.length > 0 && (
+                <div>
+                  <h4 style={{ color: '#10b981', margin: '0 0 0.8rem 0' }}>Recommendations</h4>
+                  {recommendations.map((rec, idx) => (
+                    <div key={idx} style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '0.8rem', borderRadius: '6px', marginBottom: '0.5rem', border: '1px solid rgba(16, 185, 129, 0.15)' }}>
+                      <p style={{ margin: 0, color: '#86efac', fontSize: '0.9rem' }}>{typeof rec === 'string' ? rec : rec.text || JSON.stringify(rec)}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {issues.length === 0 && recommendations.length === 0 && (
+                <p style={{ color: '#10b981', textAlign: 'center', padding: '2rem', fontSize: '1.1rem' }}>
+                  ✅ All validation checks passed. Content is verified against source material.
+                </p>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

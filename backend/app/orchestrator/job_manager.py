@@ -140,7 +140,7 @@ class JobManager:
                 state['classification'] = classification.model_dump()
                 self.jobs[job_id]["subject"] = classification.subject
                 self.jobs[job_id]["topic"] = classification.topic
-                self.jobs[job_id]["target_grade"] = classification.target_grade
+                self.jobs[job_id]["target_grade"] = classification.grade_level
                 save_state()
                 self._save_jobs_index()
                 logger.info("Stage 2 complete: Classification done")

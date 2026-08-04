@@ -65,14 +65,47 @@ def get_result(job_id):
 
 
 def _generate_if_missing(job_id):
-    """On-demand generate all export formats if they don't exist."""
+    """On-demand generate all export formats if they don't exist.
+    Handles Render ephemeral storage by regenerating from cached state."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     status_data = job_manager.get_job_status(job_id)
-    if status_data.get("status") == "completed" and status_data.get("result"):
+    logger.info(f"Download requested for {job_id}: status={status_data.get('status')}, has_result={bool(status_data.get('result'))}")
+    
+    if status_data.get("status") != "completed":
+        logger.warning(f"Job {job_id} not completed, status: {status_data.get('status')}")
+        return False
+    
+    result = status_data.get("result")
+    
+    # If result not in memory, try loading directly from cache file
+    if not result:
+        file_hash = status_data.get("file_hash", "")
+        if file_hash:
+            import json
+            cache_file = os.path.join(Config.CACHE_FOLDER, f"{file_hash}.json")
+            logger.info(f"Trying cache file: {cache_file}, exists={os.path.exists(cache_file)}")
+            if os.path.exists(cache_file):
+                try:
+                    with open(cache_file, 'r') as f:
+                        result = json.load(f)
+                except Exception as e:
+                    logger.error(f"Cache load error: {e}")
+    
+    if not result:
+        logger.warning(f"No result data available for job {job_id}")
+        return False
+    
+    try:
         from ..stages.s10_publishing import PublishingStage
         s10 = PublishingStage(job_id)
-        s10.execute(status_data.get("result"))
+        s10.execute(result)
+        logger.info(f"On-demand export generation complete for {job_id}")
         return True
-    return False
+    except Exception as e:
+        logger.error(f"Export generation error: {e}")
+        return False
 
 
 @api_bp.route('/download/<job_id>/pdf', methods=['GET'])

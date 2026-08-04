@@ -1,66 +1,224 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import './TKPViewer.css';
-import { BookOpen, Sparkles, Layers, Info, CheckCircle2, Sigma, Lightbulb } from 'lucide-react';
+import { BookOpen, Sparkles, CheckCircle2, Sigma, Target, Lightbulb } from 'lucide-react';
+
+const COLORS = ['#38bdf8', '#818cf8', '#f472b6', '#34d399', '#fb923c', '#a78bfa', '#22d3ee', '#fbbf24', '#f87171', '#4ade80'];
 
 const TKPViewer = ({ data }) => {
-  const [selectedConcept, setSelectedConcept] = useState(null);
+  const [selectedIdx, setSelectedIdx] = useState(null);
 
   const knowledge = (data && (data.knowledge_graph || data.knowledge)) || {};
   const concepts = knowledge.concepts || [];
   const objectives = knowledge.learning_objectives || [];
   const formulae = knowledge.formulae || [];
   const definitions = knowledge.definitions || [];
-  const applications = knowledge.applications || [];
+  const prerequisites = knowledge.prerequisites || [];
+  const conceptMap = knowledge.concept_map || {};
 
   const classification = data?.classification || {};
   const topic = classification.topic || 'Core Curriculum';
-  const subject = classification.subject || 'Curriculum Subject';
+  const subject = classification.subject || 'Subject';
 
-  // Active concept details
-  const activeConceptData = selectedConcept || concepts[0] || (definitions[0] ? { name: definitions[0].term, description: definitions[0].definition } : null);
+  // Build node list from concepts (or definitions as fallback)
+  const nodes = useMemo(() => {
+    const items = concepts.length > 0 ? concepts : definitions;
+    return items.map((c, i) => {
+      const name = typeof c === 'string' ? c : (c.name || c.term || `Node ${i+1}`);
+      const desc = typeof c === 'string' ? '' : (c.description || c.definition || '');
+      return { name, desc, color: COLORS[i % COLORS.length] };
+    });
+  }, [concepts, definitions]);
+
+  // Layout nodes in a circle around center
+  const graphLayout = useMemo(() => {
+    const cx = 400, cy = 280;
+    const radius = Math.min(200, 80 + nodes.length * 15);
+    return nodes.map((n, i) => {
+      const angle = (2 * Math.PI * i) / nodes.length - Math.PI / 2;
+      return {
+        ...n,
+        x: cx + radius * Math.cos(angle),
+        y: cy + radius * Math.sin(angle),
+      };
+    });
+  }, [nodes]);
+
+  // Build edges from concept_map
+  const edges = useMemo(() => {
+    const result = [];
+    const nameToIdx = {};
+    graphLayout.forEach((n, i) => { nameToIdx[n.name.toLowerCase()] = i; });
+    
+    Object.entries(conceptMap).forEach(([src, targets]) => {
+      const srcIdx = nameToIdx[src.toLowerCase()];
+      if (srcIdx === undefined) return;
+      (Array.isArray(targets) ? targets : []).forEach(t => {
+        const tIdx = nameToIdx[t.toLowerCase()];
+        if (tIdx !== undefined && tIdx !== srcIdx) {
+          result.push([srcIdx, tIdx]);
+        }
+      });
+    });
+    
+    // If no concept_map edges, connect all to center conceptually
+    if (result.length === 0 && graphLayout.length > 1) {
+      for (let i = 1; i < graphLayout.length; i++) {
+        result.push([0, i]);
+      }
+    }
+    return result;
+  }, [graphLayout, conceptMap]);
+
+  const activeNode = selectedIdx !== null ? graphLayout[selectedIdx] : null;
+
+  // Find related formulae for selected concept
+  const relatedFormulae = useMemo(() => {
+    if (!activeNode) return [];
+    const name = activeNode.name.toLowerCase();
+    return formulae.filter(f => {
+      const fName = (typeof f === 'string' ? f : (f.name || '')).toLowerCase();
+      return fName.includes(name) || name.includes(fName);
+    });
+  }, [activeNode, formulae]);
 
   return (
-    <div className="tkp-viewer" style={{ padding: '0.5rem' }}>
-      {/* Header Banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.8rem' }}>
+    <div className="tkp-viewer-v2">
+      {/* Header */}
+      <div className="tkp-header">
         <div>
-          <h3 style={{ margin: 0, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Sparkles size={20} color="#38bdf8" /> Target Knowledge Graph: {subject} — {topic}
+          <h3 className="tkp-title">
+            <Sparkles size={20} color="#38bdf8" /> Knowledge Graph: {subject} — {topic}
           </h3>
-          <p style={{ margin: '0.3rem 0 0 0', color: '#94a3b8', fontSize: '0.9rem' }}>
-            Interactive concept map dynamically synthesized from source material.
-          </p>
+          <p className="tkp-subtitle">Click any concept node to inspect definitions, formulae, and prerequisite relationships.</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <span style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 600 }}>
-            {concepts.length || definitions.length || 1} Concepts
-          </span>
-          {formulae.length > 0 && (
-            <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '0.3rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', fontWeight: 600 }}>
-              {formulae.length} Formulae
-            </span>
+        <div className="tkp-badges">
+          <span className="badge badge-blue">{nodes.length} Concepts</span>
+          {formulae.length > 0 && <span className="badge badge-green">{formulae.length} Formulae</span>}
+          {objectives.length > 0 && <span className="badge badge-purple">{objectives.length} Objectives</span>}
+        </div>
+      </div>
+
+      {/* Interactive Graph + Detail Panel */}
+      <div className="tkp-graph-container">
+        {/* SVG Graph */}
+        <div className="tkp-graph-panel">
+          <svg viewBox="0 0 800 560" className="tkp-svg">
+            {/* Edges */}
+            {edges.map(([a, b], i) => (
+              <line
+                key={`e-${i}`}
+                x1={graphLayout[a].x} y1={graphLayout[a].y}
+                x2={graphLayout[b].x} y2={graphLayout[b].y}
+                stroke="rgba(56, 189, 248, 0.2)"
+                strokeWidth="1.5"
+                strokeDasharray={selectedIdx !== null && (selectedIdx === a || selectedIdx === b) ? "none" : "6,4"}
+              />
+            ))}
+            
+            {/* Center topic node */}
+            <circle cx="400" cy="280" r="38" fill="rgba(30, 58, 138, 0.9)" stroke="#38bdf8" strokeWidth="2" />
+            <text x="400" y="280" textAnchor="middle" dominantBaseline="middle" fill="#f8fafc" fontSize="11" fontWeight="700">
+              {topic.length > 18 ? topic.slice(0, 18) + '...' : topic}
+            </text>
+
+            {/* Concept Nodes */}
+            {graphLayout.map((node, idx) => {
+              const isSelected = selectedIdx === idx;
+              const r = isSelected ? 32 : 26;
+              return (
+                <g key={idx} onClick={() => setSelectedIdx(isSelected ? null : idx)} style={{ cursor: 'pointer' }}>
+                  {/* Glow effect */}
+                  {isSelected && <circle cx={node.x} cy={node.y} r={r + 8} fill="none" stroke={node.color} strokeWidth="2" opacity="0.4">
+                    <animate attributeName="r" values={`${r+6};${r+12};${r+6}`} dur="2s" repeatCount="indefinite" />
+                  </circle>}
+                  
+                  <circle cx={node.x} cy={node.y} r={r} 
+                    fill={isSelected ? node.color : 'rgba(15, 23, 42, 0.95)'} 
+                    stroke={node.color} 
+                    strokeWidth={isSelected ? 3 : 1.5} 
+                  />
+                  <text x={node.x} y={node.y} textAnchor="middle" dominantBaseline="middle" 
+                    fill={isSelected ? '#0f172a' : node.color} 
+                    fontSize={node.name.length > 12 ? '8' : '10'} fontWeight="600"
+                  >
+                    {node.name.length > 16 ? node.name.slice(0, 14) + '..' : node.name}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Connection lines to center */}
+            {graphLayout.map((node, idx) => (
+              <line key={`center-${idx}`} x1="400" y1="280" x2={node.x} y2={node.y}
+                stroke={selectedIdx === idx ? node.color : 'rgba(255,255,255,0.06)'}
+                strokeWidth={selectedIdx === idx ? 2 : 1}
+              />
+            ))}
+          </svg>
+        </div>
+
+        {/* Detail Panel */}
+        <div className="tkp-detail-panel">
+          {activeNode ? (
+            <div className="concept-detail animate-fade-in">
+              <div className="detail-header" style={{ borderLeftColor: activeNode.color }}>
+                <BookOpen size={18} color={activeNode.color} />
+                <h4 style={{ color: activeNode.color }}>{activeNode.name}</h4>
+              </div>
+              
+              {activeNode.desc && (
+                <div className="detail-section">
+                  <span className="detail-label">Definition</span>
+                  <p className="detail-text">{activeNode.desc}</p>
+                </div>
+              )}
+
+              {relatedFormulae.length > 0 && (
+                <div className="detail-section">
+                  <span className="detail-label"><Sigma size={14} /> Formulae</span>
+                  {relatedFormulae.map((f, i) => (
+                    <div key={i} className="formula-card">
+                      <strong>{typeof f === 'string' ? f : f.name}</strong>
+                      <code>{typeof f === 'string' ? '' : (f.latex || f.plain_text)}</code>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {prerequisites.length > 0 && (
+                <div className="detail-section">
+                  <span className="detail-label">Prerequisites</span>
+                  <div className="prereq-chips">
+                    {prerequisites.map((p, i) => (
+                      <span key={i} className="prereq-chip">{typeof p === 'string' ? p : p.concept}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="detail-placeholder">
+              <Target size={36} color="#334155" />
+              <p>Click any node in the graph to inspect its pedagogical details.</p>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Learning Objectives List */}
+      {/* Learning Objectives Section */}
       {objectives.length > 0 && (
-        <div style={{ background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.15)', borderRadius: '10px', padding: '1.2rem', marginBottom: '1.5rem' }}>
-          <h4 style={{ margin: '0 0 0.8rem 0', color: '#38bdf8', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <BookOpen size={16} /> Targeted Learning Objectives (Bloom's Taxonomy)
-          </h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '0.6rem' }}>
+        <div className="tkp-objectives">
+          <h4 className="section-label"><Lightbulb size={16} color="#fbbf24" /> Targeted Learning Objectives (Bloom's Taxonomy)</h4>
+          <div className="objectives-grid">
             {objectives.map((obj, i) => {
-              const text = typeof obj === 'string' ? obj : (obj.objective || obj.text || JSON.stringify(obj));
+              const text = typeof obj === 'string' ? obj : (obj.objective || JSON.stringify(obj));
               const bloom = typeof obj === 'object' && obj.blooms_level ? obj.blooms_level : 'Understand';
               return (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: '#090d16', padding: '0.7rem 0.9rem', borderRadius: '6px' }}>
-                  <CheckCircle2 size={16} color="#10b981" style={{ marginTop: '2px', flexShrink: 0 }} />
+                <div key={i} className="objective-card">
+                  <CheckCircle2 size={14} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
-                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#f1f5f9', lineHeight: '1.4' }}>{text}</p>
-                    <span style={{ fontSize: '0.75rem', color: '#818cf8', background: 'rgba(129, 140, 248, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginTop: '0.3rem' }}>
-                      Bloom: {bloom}
-                    </span>
+                    <p>{text}</p>
+                    <span className="bloom-tag">{bloom}</span>
                   </div>
                 </div>
               );
@@ -69,96 +227,15 @@ const TKPViewer = ({ data }) => {
         </div>
       )}
 
-      {/* Interactive Concept Map & Deep Dive */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1.3fr) minmax(300px, 1fr)', gap: '1.5rem' }}>
-        {/* Interactive Concept Nodes */}
-        <div style={{ background: '#090d16', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', position: 'relative' }}>
-          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'inline-block', background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', color: '#ffffff', padding: '0.6rem 1.4rem', borderRadius: '24px', fontWeight: 700, boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}>
-              {topic}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', justifyContent: 'center' }}>
-            {(concepts.length > 0 ? concepts : definitions).map((c, idx) => {
-              const name = typeof c === 'string' ? c : (c.name || c.term);
-              const isSelected = activeConceptData && (typeof activeConceptData === 'string' ? activeConceptData === c : (activeConceptData.name === name || activeConceptData.term === name));
-              
-              return (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedConcept(c)}
-                  style={{
-                    background: isSelected ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255, 255, 255, 0.04)',
-                    color: isSelected ? '#38bdf8' : '#e2e8f0',
-                    border: isSelected ? '2px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.1)',
-                    padding: '0.6rem 1.1rem',
-                    borderRadius: '20px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    fontWeight: isSelected ? 600 : 500,
-                    transition: 'all 0.2s ease',
-                    boxShadow: isSelected ? '0 0 12px rgba(56, 189, 248, 0.3)' : 'none'
-                  }}
-                >
-                  {name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Selected Concept Card */}
-        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-          {activeConceptData ? (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.8rem' }}>
-                <BookOpen size={18} color="#38bdf8" />
-                <h4 style={{ margin: 0, color: '#38bdf8', fontSize: '1.1rem' }}>
-                  {typeof activeConceptData === 'string' ? activeConceptData : (activeConceptData.name || activeConceptData.term)}
-                </h4>
-              </div>
-              
-              <p style={{ color: '#e2e8f0', fontSize: '0.95rem', lineHeight: '1.6', margin: '0 0 1rem 0' }}>
-                {typeof activeConceptData === 'string' 
-                  ? 'Core foundational concept extracted from lesson material.' 
-                  : (activeConceptData.description || activeConceptData.definition || 'Core foundational concept extracted from lesson material.')}
-              </p>
-
-              {/* Formula if attached */}
-              {(activeConceptData.latex || activeConceptData.plain_text) && (
-                <div style={{ background: '#090d16', padding: '0.8rem', borderRadius: '6px', borderLeft: '3px solid #10b981', marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#10b981', fontSize: '0.85rem', fontWeight: 600 }}>
-                    <Sigma size={14} /> Formula:
-                  </div>
-                  <p style={{ color: '#f1f5f9', fontFamily: 'monospace', margin: '0.3rem 0 0 0', fontSize: '0.95rem' }}>
-                    {activeConceptData.latex || activeConceptData.plain_text}
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div style={{ color: '#94a3b8', textAlign: 'center', paddingTop: '3rem' }}>
-              <Info size={32} style={{ marginBottom: '0.5rem', opacity: 0.5 }} />
-              <p>Click any concept node above to inspect its pedagogical explanation.</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Formulae Section */}
+      {/* All Formulae */}
       {formulae.length > 0 && (
-        <div style={{ marginTop: '1.5rem', background: 'rgba(255, 255, 255, 0.02)', padding: '1.2rem', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-          <h4 style={{ margin: '0 0 0.8rem 0', color: '#10b981', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Sigma size={16} /> Mathematical Formulae & Equations
-          </h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.8rem' }}>
+        <div className="tkp-formulae">
+          <h4 className="section-label"><Sigma size={16} color="#10b981" /> Mathematical Formulae</h4>
+          <div className="formulae-grid">
             {formulae.map((f, i) => (
-              <div key={i} style={{ background: '#090d16', padding: '0.9rem', borderRadius: '8px', borderLeft: '3px solid #10b981' }}>
-                <strong style={{ color: '#f8fafc', fontSize: '0.9rem' }}>{f.name}</strong>
-                <p style={{ fontFamily: 'monospace', color: '#38bdf8', margin: '0.4rem 0 0 0', fontSize: '0.95rem' }}>
-                  {f.latex || f.plain_text}
-                </p>
+              <div key={i} className="formula-block">
+                <strong>{typeof f === 'string' ? f : f.name}</strong>
+                <code>{typeof f === 'string' ? '' : (f.latex || f.plain_text)}</code>
               </div>
             ))}
           </div>
