@@ -99,7 +99,7 @@ class LLMClient:
                 continue
 
             if current_provider == 'groq':
-                max_prompt_chars, max_tokens_val, pace_seconds = 8000, 4000, 6
+                max_prompt_chars, max_tokens_val, pace_seconds = 5000, 3000, 6
             elif current_provider == 'gemini':
                 max_prompt_chars, max_tokens_val, pace_seconds = 30000, 8192, 5
             elif current_provider == 'huggingface':
