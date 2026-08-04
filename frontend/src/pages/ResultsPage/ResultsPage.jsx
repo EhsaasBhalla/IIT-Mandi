@@ -86,21 +86,37 @@ const ResultsPage = () => {
         </div>
         
         {/* Export Buttons */}
-        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button 
-            onClick={handleDownloadPDF} 
+            onClick={() => window.open(`${API_BASE_URL}/api/download/${jobId}/pdf`, '_blank')} 
             className="btn" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#e11d48', color: '#ffffff', fontWeight: 600, padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', border: 'none' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#e11d48', color: '#ffffff', fontWeight: 600, padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '0.85rem' }}
           >
-            <FileDown size={18} /> Download PDF
+            <FileDown size={16} /> PDF
+          </button>
+          
+          <button 
+            onClick={() => window.open(`${API_BASE_URL}/api/download/${jobId}/docx`, '_blank')} 
+            className="btn" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#2563eb', color: '#ffffff', fontWeight: 600, padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '0.85rem' }}
+          >
+            <FileDown size={16} /> DOCX
+          </button>
+
+          <button 
+            onClick={() => window.open(`${API_BASE_URL}/api/download/${jobId}/pptx`, '_blank')} 
+            className="btn" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#d97706', color: '#ffffff', fontWeight: 600, padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '0.85rem' }}
+          >
+            <FileDown size={16} /> PPTX
           </button>
           
           <button 
             onClick={handleDownloadJSON} 
             className="btn" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#38bdf8', color: '#0f172a', fontWeight: 600, padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', border: 'none' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#38bdf8', color: '#0f172a', fontWeight: 600, padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '0.85rem' }}
           >
-            <Download size={18} /> Export JSON
+            <Download size={16} /> JSON
           </button>
         </div>
       </div>

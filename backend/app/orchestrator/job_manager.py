@@ -271,7 +271,7 @@ class JobManager:
                 self._save_jobs_index()
                 from ..stages.s10_publishing import PublishingStage
                 s10 = PublishingStage(job_id, config={"language": language})
-                publishing = s10.execute()
+                publishing = s10.execute(state)
                 state['publishing'] = publishing
                 save_state()
                 logger.info("Stage 10 complete: TKP packaged")

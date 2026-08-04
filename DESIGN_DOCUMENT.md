@@ -707,29 +707,4 @@ INFO  - Stage 5 complete: Content generated
 
 ---
 
-## 13. Future Enhancements
 
-> [!NOTE]
-> These are documented as potential extensions beyond the current implementation scope.
-
-- [ ] **Board-wise curriculum alignment** (CBSE, ICSE, Common Core mapping)
-- [ ] **User authentication** (JWT-based login for teachers)
-- [ ] **PDF export** (generate downloadable lesson plan PDFs)
-- [ ] **Real-time WebSocket** progress (replace polling)
-- [ ] **A/B test comparison UI** (side-by-side assessment variants)
-- [ ] **Batch processing** (multiple documents in parallel)
-- [ ] **RAG pipeline** (retrieval-augmented generation over uploaded docs)
-
----
-
-## 14. References
-
-- [PLACEHOLDER: Add academic references]
-- [PLACEHOLDER: Add NCERT curriculum framework references]
-- [PLACEHOLDER: Add LiteLLM documentation link]
-- [PLACEHOLDER: Add Instructor library documentation link]
-- [PLACEHOLDER: Add Pydantic v2 documentation link]
-
----
-
-*Document generated from codebase analysis — all architecture diagrams and schemas are strictly derived from the actual implementation.*

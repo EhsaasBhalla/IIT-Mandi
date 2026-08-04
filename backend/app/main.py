@@ -28,6 +28,10 @@ def create_app(config_class=Config):
                 "/api/status/<job_id>",
                 "/api/result/<job_id>",
                 "/api/jobs",
+                "/api/download/<job_id>/pdf",
+                "/api/download/<job_id>/docx",
+                "/api/download/<job_id>/pptx",
+                "/api/download/<job_id>/json",
                 "/health"
             ]
         })

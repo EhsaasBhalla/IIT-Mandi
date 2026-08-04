@@ -1,6 +1,9 @@
 import os
 import hashlib
 from flask import Blueprint, request, jsonify, send_file
+from werkzeug.utils import secure_filename
+from ..config import Config
+from ..orchestrator.job_manager import job_manager
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -60,19 +63,65 @@ def get_result(job_id):
         return jsonify({"result": status_data.get("result")}), 200
     return jsonify({"error": "Job not completed or not found"}), 400
 
+
+def _generate_if_missing(job_id):
+    """On-demand generate all export formats if they don't exist."""
+    status_data = job_manager.get_job_status(job_id)
+    if status_data.get("status") == "completed" and status_data.get("result"):
+        from ..stages.s10_publishing import PublishingStage
+        s10 = PublishingStage(job_id)
+        s10.execute(status_data.get("result"))
+        return True
+    return False
+
+
 @api_bp.route('/download/<job_id>/pdf', methods=['GET'])
 def download_pdf(job_id):
     pdf_path = os.path.join(Config.OUTPUT_FOLDER, f"TKP_{job_id}.pdf")
     if os.path.exists(pdf_path):
         return send_file(pdf_path, as_attachment=True, download_name=f"Teacher_Knowledge_Package_{job_id[:8]}.pdf")
     
-    # Fallback: check if job result exists and generate PDF on the fly
-    status_data = job_manager.get_job_status(job_id)
-    if status_data.get("status") == "completed" and status_data.get("result"):
-        from ..stages.s10_publishing import PublishingStage
-        s10 = PublishingStage(job_id)
-        s10.execute(status_data.get("result"))
+    if _generate_if_missing(job_id):
         if os.path.exists(pdf_path):
             return send_file(pdf_path, as_attachment=True, download_name=f"Teacher_Knowledge_Package_{job_id[:8]}.pdf")
             
     return jsonify({"error": "PDF not ready or job incomplete"}), 404
+
+
+@api_bp.route('/download/<job_id>/docx', methods=['GET'])
+def download_docx(job_id):
+    docx_path = os.path.join(Config.OUTPUT_FOLDER, f"TKP_{job_id}.docx")
+    if os.path.exists(docx_path):
+        return send_file(docx_path, as_attachment=True, download_name=f"Teacher_Guide_{job_id[:8]}.docx")
+    
+    if _generate_if_missing(job_id):
+        if os.path.exists(docx_path):
+            return send_file(docx_path, as_attachment=True, download_name=f"Teacher_Guide_{job_id[:8]}.docx")
+            
+    return jsonify({"error": "DOCX not ready or job incomplete"}), 404
+
+
+@api_bp.route('/download/<job_id>/pptx', methods=['GET'])
+def download_pptx(job_id):
+    pptx_path = os.path.join(Config.OUTPUT_FOLDER, f"TKP_{job_id}.pptx")
+    if os.path.exists(pptx_path):
+        return send_file(pptx_path, as_attachment=True, download_name=f"Teacher_Presentation_{job_id[:8]}.pptx")
+    
+    if _generate_if_missing(job_id):
+        if os.path.exists(pptx_path):
+            return send_file(pptx_path, as_attachment=True, download_name=f"Teacher_Presentation_{job_id[:8]}.pptx")
+            
+    return jsonify({"error": "PPTX not ready or job incomplete"}), 404
+
+
+@api_bp.route('/download/<job_id>/json', methods=['GET'])
+def download_json(job_id):
+    json_path = os.path.join(Config.OUTPUT_FOLDER, f"TKP_{job_id}.json")
+    if os.path.exists(json_path):
+        return send_file(json_path, as_attachment=True, download_name=f"TeacherKnowledgePackage_{job_id[:8]}.json")
+    
+    if _generate_if_missing(job_id):
+        if os.path.exists(json_path):
+            return send_file(json_path, as_attachment=True, download_name=f"TeacherKnowledgePackage_{job_id[:8]}.json")
+            
+    return jsonify({"error": "JSON not ready or job incomplete"}), 404
