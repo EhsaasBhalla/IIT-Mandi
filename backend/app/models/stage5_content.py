@@ -43,3 +43,12 @@ class PeriodContent(BaseModel):
         if isinstance(v, str): return [v]
         if not isinstance(v, list): return []
         return [str(x) for x in v]
+
+    @field_validator('teacher_script', 'blackboard_notes', mode='before')
+    @classmethod
+    def coerce_to_str(cls, v):
+        if isinstance(v, list):
+            return "\n".join(str(x) for x in v)
+        if isinstance(v, dict):
+            return "\n".join(f"{k}: {val}" for k, val in v.items())
+        return str(v)
