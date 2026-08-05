@@ -54,6 +54,8 @@ class KnowledgeExtractionStage(BaseStage):
             
             Extract core concepts, specific learning objectives, formulas (if any), 
             and common student misconceptions related to this material.
+            
+            IMPORTANT: If the provided text is brief or missing context, augment it using your own pedagogical knowledge. Add highly relevant definitions, formulas, and concepts that naturally belong to this topic, but strictly avoid unnecessary or irrelevant fluff.
             """
             
             try:
@@ -61,7 +63,7 @@ class KnowledgeExtractionStage(BaseStage):
                     language=self.config.get("language", "English"), 
                     prompt=prompt,
                     response_model=KnowledgeExtraction,
-                    system_prompt="You are an expert curriculum extractor."
+                    system_prompt="You are an expert curriculum extractor. Your goal is to build a complete, robust knowledge map even if the source material is sparse."
                 )
                 
                 # Merge the results

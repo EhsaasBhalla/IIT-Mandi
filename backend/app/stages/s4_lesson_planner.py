@@ -57,6 +57,8 @@ class LessonPlannerStage(BaseStage):
             
             Distribute these concepts and objectives logically across the {num_periods} periods. 
             Only return the title, focus concepts, and focus objectives for each period. Do not generate detailed methodologies yet.
+            
+            IMPORTANT: If the key concepts or objectives seem sparse, logically supplement them with standard, highly relevant topics that fit this subject and grade level to create a well-rounded lesson outline. Avoid irrelevant fluff.
             """
             
             outline_result = client.generate_structured(
@@ -96,6 +98,8 @@ class LessonPlannerStage(BaseStage):
             Design a comprehensive 45-minute period covering these specific concepts and objectives.
             Outline the time allocation (e.g., Introduction 5 min, Main Activity 30 min, Closure 10 min), 
             the teaching methodology, and any resources needed.
+            
+            IMPORTANT: If the focus concepts are very brief, expand on them using your own expert pedagogical knowledge. Introduce highly relevant real-world examples or activities that naturally fit the concepts. Do NOT include irrelevant fluff.
             """
             
             period_detail = client.generate_structured(

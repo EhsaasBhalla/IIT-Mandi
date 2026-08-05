@@ -254,7 +254,10 @@ def generate_pdf(state: dict, out_path: str):
         pdf.set_text_color(30, 41, 59)
         completeness = validation.get("completeness_score", 0)
         consistency = validation.get("consistency_score", 0)
-        overall = round((completeness + consistency) / 2) if completeness and consistency else 'N/A'
+        try:
+            overall = round((float(completeness) + float(consistency)) / 2)
+        except (ValueError, TypeError):
+            overall = 'N/A'
         pdf.multi_cell(0, 5, _safe(f"Overall Score: {overall}/100"))
         
         flags = validation.get('hallucination_flags', 0)
@@ -485,7 +488,10 @@ def generate_docx(state: dict, out_path: str):
         doc.add_heading("8. Quality Validation Report", level=1)
         completeness = validation.get("completeness_score", 0)
         consistency = validation.get("consistency_score", 0)
-        overall = round((completeness + consistency) / 2) if completeness and consistency else 'N/A'
+        try:
+            overall = round((float(completeness) + float(consistency)) / 2)
+        except (ValueError, TypeError):
+            overall = 'N/A'
         doc.add_paragraph(f"Overall Score: {overall}/100")
         
         flags = validation.get('hallucination_flags', 0)
