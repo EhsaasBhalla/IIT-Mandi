@@ -99,7 +99,7 @@ class LLMClient:
                 continue
 
             if current_provider == 'groq':
-                max_prompt_chars, max_tokens_val, pace_seconds = 6000, 4000, 30
+                max_prompt_chars, max_tokens_val, pace_seconds = 6000, 2500, 30
             elif current_provider == 'gemini':
                 max_prompt_chars, max_tokens_val, pace_seconds = 30000, 8192, 5
             elif current_provider == 'openai':
@@ -144,11 +144,10 @@ class LLMClient:
                         is_rate_limit = any(k in error_str.lower() for k in ["429", "413", "rate_limit", "resource_exhausted", "tokens per minute", "tpm"])
                         
                         if is_rate_limit:
-                            if "413" in error_str or "tokens" in error_str.lower():
-                                logger.warning(f"Token limit on {model}. Retrying...")
-                                # WE DO NOT TRUNCATE MAX_TOKENS HERE ANYMORE.
-                                # Truncating max_tokens for JSON output breaks the JSON and causes instructor to infinite loop.
-                            
+                            if "413" in error_str or ("requested" in error_str.lower() and "limit" in error_str.lower()):
+                                logger.warning(f"Hard TPM limit exceeded on {model} (Payload too large). Skipping retries.")
+                                break # Do not retry 413s, it will never fit. Break to fallback.
+                                
                             wait = 30 * (attempt + 1)
                             logger.warning(f"{model} rate limit (attempt {attempt+1}/3). Waiting {wait}s...")
                             time.sleep(wait)
