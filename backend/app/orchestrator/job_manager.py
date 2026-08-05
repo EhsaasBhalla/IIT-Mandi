@@ -7,6 +7,8 @@ import logging
 from ..config import Config
 from .db import db_manager
 
+logger = logging.getLogger(__name__)
+
 class JobManager:
     def __init__(self):
         self.jobs = {}
