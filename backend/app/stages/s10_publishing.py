@@ -43,8 +43,8 @@ def _safe(text, maxlen=2000):
     words = text.split(' ')
     wrapped = []
     for w in words:
-        if len(w) > 50:
-            chunks = [w[i:i+50] for i in range(0, len(w), 50)]
+        if len(w) > 30:
+            chunks = [w[i:i+30] for i in range(0, len(w), 30)]
             wrapped.append(' '.join(chunks))
         else:
             wrapped.append(w)
