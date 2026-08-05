@@ -99,9 +99,11 @@ class LLMClient:
                 continue
 
             if current_provider == 'groq':
-                max_prompt_chars, max_tokens_val, pace_seconds = 3000, 4500, 20
+                max_prompt_chars, max_tokens_val, pace_seconds = 6000, 4000, 30
             elif current_provider == 'gemini':
                 max_prompt_chars, max_tokens_val, pace_seconds = 30000, 8192, 5
+            elif current_provider == 'openai':
+                max_prompt_chars, max_tokens_val, pace_seconds = 30000, 16000, 30
             elif current_provider == 'huggingface':
                 max_prompt_chars, max_tokens_val, pace_seconds = 20000, 4096, 2
             else:
