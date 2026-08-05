@@ -183,7 +183,7 @@ language, board_alignment[], estimated_teaching_hours
 |----------|-------|
 | Input | `doc_intel: dict`, `classification: dict` |
 | Output | `KnowledgeExtraction` |
-| API Calls | **1** |
+| API Calls | **1-5 (Chunked Map-Reduce)** |
 | Caching Key | `knowledge` |
 
 **Output Schema**:
@@ -192,6 +192,8 @@ learning_objectives[], prerequisites[], concepts[], definitions[],
 formulae[], keywords[], examples[], applications[],
 misconceptions[], concept_map: Dict[str, List[str]]
 ```
+
+**Execution**: Employs a Map-Reduce strategy. The document is chunked into 4,000-character segments. The LLM extracts knowledge from each segment sequentially (max 5 chunks to protect Free Tier TPM/TPD limits), and an aggregation layer merges all extracted arrays into a unified schema. Prompts instruct the AI to augment sparse source material with its own pedagogical knowledge without adding fluff.
 
 #### Stage 4 — Lesson Planning
 
@@ -233,6 +235,8 @@ period_number, critic_reflection, entry_ticket, teacher_script,
 blackboard_notes, activities[], checkpoint_questions[],
 exit_ticket, homework[], mentor_moment, differentiation
 ```
+
+**Formatting Enforcement**: Prompts contain explicit instructions that string fields (like `teacher_script`) must be returned as continuous flat strings with `\n`, NOT as nested JSON objects, to prevent server-side JSON validation failures.
 
 #### Stage 6 — Activity Design
 
@@ -306,6 +310,8 @@ hallucination_flags[], structural_flags[],
 time_validation: Dict[str, bool]
 ```
 
+**Resilience**: The system anticipates LLM formatting hallucinations in the Quality Scores. When aggregating scores, it uses robust float casting and defaults to `'N/A'` upon value/type errors to prevent crashes during the Publishing stage.
+
 #### Stage 10 — Publishing (Free)
 
 **Purpose**: Packages the final TKP output for export. No API calls.
@@ -316,6 +322,11 @@ time_validation: Dict[str, bool]
 | Output | `dict` (format, version, ready_for_export) |
 | API Calls | **0** |
 | Caching Key | `publishing` |
+
+**Engines Used**:
+- **PDF**: Uses `fpdf2` for native Linux-compatible PDF generation (removes COM dependencies like docx2pdf for production deployments).
+- **DOCX**: Uses `python-docx` for rich styling.
+- **PPTX**: Uses `python-pptx` for multi-slide exports.
 
 ---
 
@@ -396,6 +407,9 @@ result = client.generate_structured(
 # result is a fully validated Pydantic object, never raw JSON
 ```
 
+**JSON Parsing Resilience (Groq-specific)**:
+To prevent Groq's native API from aborting requests (400 Bad Request) upon minor JSON syntax errors, Groq is configured to use `instructor.Mode.MD_JSON`. This bypasses strict server-side JSON mode and relies on Instructor's local parsing, allowing the retry mechanism to successfully catch syntax errors and prompt the LLM to fix them.
+
 ---
 
 ## 5. Caching & Resume Architecture
@@ -471,8 +485,9 @@ Job metadata is saved to `storage/cache/_jobs_index.json` and survives server re
 
 ### 6.2 Token Optimization
 
-- **Chunked Generation**: Stage 4 & 5 generate massive plans piece-by-piece to mathematically eliminate `max_tokens` exhaustion.
+- **Chunked Generation**: Stage 3 (Map-Reduce), Stage 4 & 5 generate massive plans piece-by-piece to mathematically eliminate `max_tokens` exhaustion.
 - **Prompt truncation**: Document text capped at 8000 characters per API call
+- **Headroom Optimization**: For Groq, `max_tokens` is artificially clamped to 2500 to leave a 3500 token headroom (out of 6000 TPM limit) so large response schemas never trigger a 413 Payload Too Large error.
 - **Incremental caching**: Never re-processes completed stages
 - **Dynamic pacing**: Provider-aware sleep (2s Groq vs 6s Gemini)
 - **Automatic fallback**: Switches to lighter model on rate limits
