@@ -48,14 +48,14 @@ def generate_pdf(state: dict, out_path: str):
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
 
-    classification = state.get("classification", {})
-    knowledge = state.get("knowledge", {})
-    lesson_plan = state.get("lesson_plan", {})
-    period_contents = state.get("period_contents", [])
-    activities = state.get("activities", [])
-    assessments = state.get("ab_test_assessment", {})
-    gap_data = state.get("gap_analysis", {})
-    validation = state.get("validation", {})
+    classification = state.get("classification") or {}
+    knowledge = state.get("knowledge") or {}
+    lesson_plan = state.get("lesson_plan") or {}
+    period_contents = state.get("period_contents") or []
+    activities = state.get("activities") or []
+    assessments = state.get("ab_test_assessment") or {}
+    gap_data = state.get("gap_analysis") or {}
+    validation = state.get("validation") or {}
 
     subject = classification.get("subject", "General Curriculum")
     topic = classification.get("topic", "Teacher Knowledge Package")
@@ -82,7 +82,7 @@ def generate_pdf(state: dict, out_path: str):
     pdf.ln(6)
 
     # ── 1. Learning Objectives ──
-    objs = knowledge.get("learning_objectives", [])
+    objs = knowledge.get("learning_objectives") or []
     if objs:
         section_header("1. Core Learning Objectives")
         pdf.set_font('Helvetica', '', 9.5)
@@ -97,9 +97,9 @@ def generate_pdf(state: dict, out_path: str):
         pdf.ln(3)
 
     # ── 2. Key Concepts & Definitions ──
-    concepts = knowledge.get("concepts", [])
-    definitions = knowledge.get("definitions", [])
-    formulae = knowledge.get("formulae", [])
+    concepts = knowledge.get("concepts") or []
+    definitions = knowledge.get("definitions") or []
+    formulae = knowledge.get("formulae") or []
     if concepts or definitions:
         section_header("2. Key Concepts, Definitions & Formulae")
         pdf.set_font('Helvetica', '', 9.5)
@@ -124,7 +124,7 @@ def generate_pdf(state: dict, out_path: str):
         pdf.ln(4)
 
     # ── 3. Lesson Plan ──
-    periods = lesson_plan.get("periods", [])
+    periods = lesson_plan.get("periods") or []
     if periods:
         section_header("3. Multi-Period Lesson Plan")
         for p in periods:
@@ -209,7 +209,7 @@ def generate_pdf(state: dict, out_path: str):
         pdf.set_font('Helvetica', '', 9)
         pdf.set_text_color(51, 65, 85)
 
-        mcqs = variant.get("mcqs", [])
+        mcqs = variant.get("mcqs") or []
         for i, q in enumerate(mcqs):
             pdf.multi_cell(0, 4.5, _safe(f"Q{i+1}. {q.get('question', '')}"))
             for oIdx, opt in enumerate(q.get("options", [])):
@@ -218,7 +218,7 @@ def generate_pdf(state: dict, out_path: str):
             pdf.multi_cell(0, 4.5, _safe(f"   Answer: {q.get('correct_option', '')} — {q.get('explanation', '')}"))
             pdf.set_text_color(51, 65, 85)
 
-        short_ans = variant.get("short_answer", [])
+        short_ans = variant.get("short_answer") or []
         for i, q in enumerate(short_ans):
             pdf.multi_cell(0, 4.5, _safe(f"Q{i+1}. {q.get('question', '')}"))
             pdf.set_text_color(16, 185, 129)
@@ -227,7 +227,7 @@ def generate_pdf(state: dict, out_path: str):
         pdf.ln(2)
 
     # ── 7. Gap Analysis ──
-    gaps_list = gap_data.get("gaps", [])
+    gaps_list = gap_data.get("gaps") or []
     if gaps_list:
         section_header("7. Learning Gap Analysis & Remediation")
         for g in gaps_list:
@@ -260,10 +260,14 @@ def generate_pdf(state: dict, out_path: str):
             for flag in flags:
                 flag_text = flag.get("description", str(flag)) if isinstance(flag, dict) else str(flag)
                 pdf.multi_cell(0, 5, _safe(f"  - {flag_text}"))
+        elif isinstance(flags, dict):
+            pdf.multi_cell(0, 5, _safe(f"Hallucination Flags: 1"))
+            flag_text = flags.get("description", str(flags))
+            pdf.multi_cell(0, 5, _safe(f"  - {flag_text}"))
         else:
             pdf.multi_cell(0, 5, _safe(f"Hallucination Flags: {flags}"))
             
-        issues = validation.get("issues", [])
+        issues = validation.get("issues") or []
         if issues:
             for issue in issues:
                 if isinstance(issue, str):
@@ -282,14 +286,14 @@ def generate_docx(state: dict, out_path: str):
     """Generate a comprehensive DOCX Teacher Guide from TKP state."""
     doc = Document()
 
-    classification = state.get("classification", {})
-    knowledge = state.get("knowledge", {})
-    lesson_plan = state.get("lesson_plan", {})
-    period_contents = state.get("period_contents", [])
-    activities = state.get("activities", [])
-    assessments = state.get("ab_test_assessment", {})
-    gap_data = state.get("gap_analysis", {})
-    validation = state.get("validation", {})
+    classification = state.get("classification") or {}
+    knowledge = state.get("knowledge") or {}
+    lesson_plan = state.get("lesson_plan") or {}
+    period_contents = state.get("period_contents") or []
+    activities = state.get("activities") or []
+    assessments = state.get("ab_test_assessment") or {}
+    gap_data = state.get("gap_analysis") or {}
+    validation = state.get("validation") or {}
 
     subject = classification.get("subject", "General Curriculum")
     topic = classification.get("topic", "Teacher Knowledge Package")
@@ -305,7 +309,7 @@ def generate_docx(state: dict, out_path: str):
     doc.add_paragraph("")
 
     # ── 1. Learning Objectives ──
-    objs = knowledge.get("learning_objectives", [])
+    objs = knowledge.get("learning_objectives") or []
     if objs:
         doc.add_heading("1. Core Learning Objectives", level=1)
         for o in objs:
@@ -318,9 +322,9 @@ def generate_docx(state: dict, out_path: str):
                 run.font.color.rgb = RGBColor(99, 102, 241)
 
     # ── 2. Key Concepts ──
-    concepts = knowledge.get("concepts", [])
-    definitions = knowledge.get("definitions", [])
-    formulae = knowledge.get("formulae", [])
+    concepts = knowledge.get("concepts") or []
+    definitions = knowledge.get("definitions") or []
+    formulae = knowledge.get("formulae") or []
     if concepts or definitions:
         doc.add_heading("2. Key Concepts, Definitions & Formulae", level=1)
         if concepts:
@@ -351,7 +355,7 @@ def generate_docx(state: dict, out_path: str):
                 run2.font.name = "Courier New"
 
     # ── 3. Lesson Plan ──
-    periods = lesson_plan.get("periods", [])
+    periods = lesson_plan.get("periods") or []
     if periods:
         doc.add_heading("3. Multi-Period Lesson Plan", level=1)
         # Summary table
@@ -431,7 +435,7 @@ def generate_docx(state: dict, out_path: str):
         variant = assessments.get(var_key, {})
         doc.add_heading(var_label, level=2)
 
-        mcqs = variant.get("mcqs", [])
+        mcqs = variant.get("mcqs") or []
         if mcqs:
             doc.add_heading("MCQs", level=3)
             for i, q in enumerate(mcqs):
@@ -444,7 +448,7 @@ def generate_docx(state: dict, out_path: str):
                 ans_run = ans_p.add_run(f"Answer: {q.get('correct_option', '')} — {q.get('explanation', '')}")
                 ans_run.font.color.rgb = RGBColor(16, 185, 129)
 
-        short_ans = variant.get("short_answer", [])
+        short_ans = variant.get("short_answer") or []
         if short_ans:
             doc.add_heading("Short Answer", level=3)
             for i, q in enumerate(short_ans):
@@ -456,7 +460,7 @@ def generate_docx(state: dict, out_path: str):
                 ans_run.font.color.rgb = RGBColor(16, 185, 129)
 
     # ── 7. Gap Analysis ──
-    gaps_list = gap_data.get("gaps", [])
+    gaps_list = gap_data.get("gaps") or []
     if gaps_list:
         doc.add_heading("7. Learning Gap Analysis & Remediation", level=1)
         table = doc.add_table(rows=1, cols=4)
@@ -484,6 +488,10 @@ def generate_docx(state: dict, out_path: str):
             for flag in flags:
                 flag_text = flag.get("description", str(flag)) if isinstance(flag, dict) else str(flag)
                 doc.add_paragraph(f"  - {flag_text}")
+        elif isinstance(flags, dict):
+            doc.add_paragraph(f"Hallucination Flags: 1")
+            flag_text = flags.get("description", str(flags))
+            doc.add_paragraph(f"  - {flag_text}")
         else:
             doc.add_paragraph(f"Hallucination Flags: {flags}")
             
@@ -504,13 +512,13 @@ def generate_pptx(state: dict, out_path: str):
     prs.slide_width = PptxInches(13.333)
     prs.slide_height = PptxInches(7.5)
 
-    classification = state.get("classification", {})
-    knowledge = state.get("knowledge", {})
-    lesson_plan = state.get("lesson_plan", {})
-    period_contents = state.get("period_contents", [])
-    activities = state.get("activities", [])
-    assessments = state.get("ab_test_assessment", {})
-    gap_data = state.get("gap_analysis", {})
+    classification = state.get("classification") or {}
+    knowledge = state.get("knowledge") or {}
+    lesson_plan = state.get("lesson_plan") or {}
+    period_contents = state.get("period_contents") or []
+    activities = state.get("activities") or []
+    assessments = state.get("ab_test_assessment") or {}
+    gap_data = state.get("gap_analysis") or {}
 
     subject = classification.get("subject", "General Curriculum")
     topic = classification.get("topic", "Teacher Knowledge Package")
@@ -535,7 +543,7 @@ def generate_pptx(state: dict, out_path: str):
             lines = [line.strip() for line in str(body_text).split("\n") if line.strip()]
             body_text = "\n".join(lines)
             
-        chunk_size = 650 # Max characters before text overflows slide
+        chunk_size = 400 # Max characters before text overflows slide
         if not body_text or len(body_text) <= chunk_size:
             return _create_single_slide(title_text, body_text)
 

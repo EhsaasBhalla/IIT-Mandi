@@ -392,8 +392,14 @@ const ResultsPage = () => {
         {activeTab === 'validation' && (() => {
           const validation = data.validation || {};
           const score = validation.overall_score || validation.score || 'N/A';
-          const hallFlags = validation.hallucination_flags || validation.hallucination_count || 0;
+          let hallFlags = validation.hallucination_flags || validation.hallucination_count || 0;
           
+          if (Array.isArray(hallFlags)) {
+            hallFlags = hallFlags.length;
+          } else if (typeof hallFlags === 'object' && hallFlags !== null) {
+            hallFlags = 1;
+          }
+
           // Defensive parsing to prevent crash if LLM hallucinates non-arrays
           const rawIssues = validation.issues || [];
           const issues = Array.isArray(rawIssues) ? rawIssues : (rawIssues ? [rawIssues] : []);
