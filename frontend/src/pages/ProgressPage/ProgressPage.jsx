@@ -42,9 +42,25 @@ const ProgressPage = () => {
                 setTimeout(() => {
                     navigate(`/results/${jobId}`);
                 }, 800);
-            } else if (data.status === "error") {
-                clearInterval(timer);
-                alert("Error processing document: " + (data.error || "Unknown pipeline error"));
+            } else if (data.status === "error" || data.status === "interrupted") {
+                if (!window.isResuming) {
+                    window.isResuming = true;
+                    fetch(`${API_BASE_URL}/api/resume/${jobId}`, { method: 'POST' })
+                        .then(res => res.json())
+                        .then(resumeData => {
+                            if (resumeData.status === "pending") {
+                                console.log("Job auto-resumed successfully!");
+                                setTimeout(() => { window.isResuming = false; }, 3000);
+                            } else {
+                                clearInterval(timer);
+                                alert("Cannot resume document: " + (data.error || "Unknown"));
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            window.isResuming = false;
+                        });
+                }
             }
         }
       } catch (err) {

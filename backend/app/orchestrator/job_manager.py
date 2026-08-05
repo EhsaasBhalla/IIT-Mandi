@@ -60,6 +60,8 @@ class JobManager:
                 "target_grade": job.get("target_grade", ""),
                 "created_at": job.get("created_at", 0),
                 "file_hash": job.get("file_hash", ""),
+                "file_path": job.get("file_path", ""),
+                "ref_path": job.get("ref_path", ""),
                 "error": job.get("error")
             }
             coll.update_one({"id": job_id}, {"$set": meta_only}, upsert=True)
@@ -67,14 +69,32 @@ class JobManager:
             logger.warning(f"Could not save job {job_id} meta to MongoDB: {e}")
 
     def start_job(self, file_path, ref_path=None, language="English", file_hash=None):
-        """Start a new job, or resume an existing one if same file_hash exists."""
+        """Start a new job, or resume an existing one if same file_hash exists and is incomplete."""
         
-        # Check if we already have a completed job for this file
+        # Check if we already have an incomplete job for this file
         if file_hash:
             for existing_id, existing_job in self.jobs.items():
-                if existing_job.get("file_hash") == file_hash and existing_job.get("status") == "completed":
-                    logger.info(f"Found completed cache for hash {file_hash[:8]}. Returning existing job.")
-                    return existing_id
+                if existing_job.get("file_hash") == file_hash:
+                    status = existing_job.get("status")
+                    if status in ["error", "interrupted"]:
+                        logger.info(f"Found interrupted job for hash {file_hash[:8]}. Resuming existing job {existing_id}.")
+                        # Update paths in case they re-uploaded with a different filename
+                        self.jobs[existing_id]["file_path"] = file_path
+                        self.jobs[existing_id]["ref_path"] = ref_path
+                        self.jobs[existing_id]["status"] = "pending"
+                        self.jobs[existing_id]["error"] = None
+                        self._save_job_meta(existing_id)
+                        
+                        thread = threading.Thread(target=self._run_pipeline, args=(existing_id, file_path, ref_path, language, file_hash))
+                        thread.daemon = True
+                        thread.start()
+                        return existing_id
+                    elif status in ["pending", "processing"]:
+                        logger.info(f"Found already running job for hash {file_hash[:8]}. Returning existing job {existing_id}.")
+                        return existing_id
+                    elif status == "completed":
+                        # Intentionally let it generate a NEW job so the user gets multiple versions!
+                        pass
         
         job_id = str(uuid.uuid4())
         self.jobs[job_id] = {
@@ -84,6 +104,8 @@ class JobManager:
             "stage": "Initializing",
             "language": language,
             "file_hash": file_hash,
+            "file_path": file_path,
+            "ref_path": ref_path,
             "created_at": time.time(),
             "result": None,
             "error": None
@@ -94,7 +116,33 @@ class JobManager:
         thread.daemon = True
         thread.start()
         
-        return job_id
+    def resume_job(self, job_id: str):
+        """Manually resume a specific job ID if it failed/interrupted."""
+        job = self.jobs.get(job_id)
+        if not job:
+            return False
+            
+        status = job.get("status")
+        if status in ["error", "interrupted"]:
+            logger.info(f"Manually resuming job {job_id}")
+            self.jobs[job_id]["status"] = "pending"
+            self.jobs[job_id]["error"] = None
+            self._save_job_meta(job_id)
+            
+            thread = threading.Thread(
+                target=self._run_pipeline, 
+                args=(
+                    job_id, 
+                    job.get("file_path"), 
+                    job.get("ref_path"), 
+                    job.get("language", "English"), 
+                    job.get("file_hash")
+                )
+            )
+            thread.daemon = True
+            thread.start()
+            return True
+        return False
         
     def _run_pipeline(self, job_id, file_path, ref_path=None, language="English", file_hash=None):
         try:

@@ -63,6 +63,13 @@ def get_result(job_id):
         return jsonify({"result": status_data.get("result")}), 200
     return jsonify({"error": "Job not completed or not found"}), 400
 
+@api_bp.route('/resume/<job_id>', methods=['POST'])
+def resume_job(job_id):
+    success = job_manager.resume_job(job_id)
+    if success:
+        return jsonify({"message": "Job resumed", "status": "pending"}), 202
+    return jsonify({"error": "Job cannot be resumed or not found"}), 400
+
 
 def _generate_if_missing(job_id):
     """On-demand generate all export formats if they don't exist.
