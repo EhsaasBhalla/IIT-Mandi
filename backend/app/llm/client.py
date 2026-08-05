@@ -59,7 +59,8 @@ class LLMClient:
             groq_key = self.api_key if self.primary_provider == 'groq' and self.api_key else (Config.GROQ_API_KEY or "")
             os.environ["GROQ_API_KEY"] = groq_key
             groq_client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=groq_key)
-            return instructor.from_openai(groq_client, mode=instructor.Mode.JSON), "llama-3.1-8b-instant", "llama-3.3-70b-versatile"
+            # Use MD_JSON instead of JSON to bypass Groq's strict server-side JSON validation which aborts with 400 errors
+            return instructor.from_openai(groq_client, mode=instructor.Mode.MD_JSON), "llama-3.1-8b-instant", "llama-3.3-70b-versatile"
         elif provider == 'openai':
             os.environ["OPENAI_API_KEY"] = self.api_key if self.primary_provider == 'openai' and self.api_key else (Config.OPENAI_API_KEY or "")
             return instructor.from_litellm(litellm.completion), "gpt-4o-mini", None

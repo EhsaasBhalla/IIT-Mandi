@@ -41,6 +41,8 @@ class ContentGenerationStage(BaseStage):
             Methodology: {period.teaching_methodology}
             
             IMPORTANT: If the provided concepts or objectives are brief, fill in the gaps with your own rich pedagogical knowledge to create a fully detailed, engaging script and comprehensive notes. Add relevant real-world examples, but absolutely avoid irrelevant fluff.
+            
+            CRITICAL FORMATTING INSTRUCTION: For fields like `teacher_script` and `blackboard_notes` which expect a string, you MUST output a single continuous string (use \\n for line breaks). Do NOT output a nested JSON object or dictionary for these fields, otherwise the JSON validation will fail!
             """
             
             result = client.generate_structured(
