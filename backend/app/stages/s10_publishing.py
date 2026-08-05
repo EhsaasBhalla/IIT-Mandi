@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from fpdf import FPDF
 from docx import Document
 from docx.shared import Inches, Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -9,15 +10,276 @@ from pptx import Presentation
 from pptx.util import Inches as PptxInches, Pt as PptxPt, Emu
 from pptx.dml.color import RGBColor as PptxRGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
-from docx2pdf import convert
 from .base import BaseStage
 from ..config import Config
 
 logger = logging.getLogger(__name__)
 
 
-# DOCX & PDF REPORT GENERATION
 # ═══════════════════════════════════════════════════════
+# PDF REPORT (fpdf2)
+# ═══════════════════════════════════════════════════════
+class PDFReport(FPDF):
+    def header(self):
+        self.set_font('Helvetica', 'B', 10)
+        self.set_text_color(100, 116, 139)
+        self.cell(0, 8, 'Teacher Knowledge Package (TKP) | AI Platform', 0, 1, 'R')
+        self.ln(2)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Helvetica', 'I', 8)
+        self.set_text_color(148, 163, 184)
+        self.cell(0, 10, f'Page {self.page_no()}/{{nb}}', 0, 0, 'C')
+
+
+def _safe(text, maxlen=2000):
+    """Sanitize text for PDF — replace unsupported chars."""
+    if not text:
+        return ""
+    text = str(text)[:maxlen]
+    return text.encode('latin-1', errors='replace').decode('latin-1')
+
+
+def generate_pdf(state: dict, out_path: str):
+    """Generate a comprehensive multi-page PDF report from the TKP state."""
+    pdf = PDFReport()
+    pdf.alias_nb_pages()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    classification = state.get("classification") or {}
+    knowledge = state.get("knowledge") or {}
+    lesson_plan = state.get("lesson_plan") or {}
+    period_contents = state.get("period_contents") or []
+    activities = state.get("activities") or []
+    assessments = state.get("ab_test_assessment") or {}
+    gap_data = state.get("gap_analysis") or {}
+    validation = state.get("validation") or {}
+
+    subject = classification.get("subject", "General Curriculum")
+    topic = classification.get("topic", "Teacher Knowledge Package")
+    grade = classification.get("target_grade", classification.get("grade_level", "K-12"))
+    board = classification.get("curriculum_board", "CBSE/NCERT")
+
+    def section_header(title):
+        pdf.set_font('Helvetica', 'B', 14)
+        pdf.set_text_color(15, 23, 42)
+        pdf.cell(0, 9, _safe(title).replace('\n', ' '), 0, 1, 'L')
+        pdf.set_draw_color(56, 189, 248)
+        pdf.set_line_width(0.5)
+        pdf.line(pdf.get_x(), pdf.get_y(), pdf.get_x() + 190, pdf.get_y())
+        pdf.ln(3)
+
+    # ── COVER ──
+    pdf.set_font('Helvetica', 'B', 22)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 14, _safe(f"{subject}: {topic}").replace('\n', ' '), 0, 1, 'L')
+    pdf.set_font('Helvetica', '', 11)
+    pdf.set_text_color(71, 85, 105)
+    total_periods = lesson_plan.get("total_periods", len(period_contents) or 3)
+    pdf.cell(0, 7, _safe(f"Grade {grade}  |  Board: {board}  |  {total_periods} Teaching Periods").replace('\n', ' '), 0, 1, 'L')
+    pdf.ln(6)
+
+    # ── 1. Learning Objectives ──
+    objs = knowledge.get("learning_objectives") or []
+    if objs:
+        section_header("1. Core Learning Objectives")
+        pdf.set_font('Helvetica', '', 9.5)
+        pdf.set_text_color(30, 41, 59)
+        for o in objs:
+            text = o if isinstance(o, str) else o.get("objective", str(o))
+            bloom = "" if isinstance(o, str) else o.get("blooms_level", "")
+            line = f"  * {text}"
+            if bloom:
+                line += f"  [Bloom: {bloom}]"
+            pdf.multi_cell(0, 5, _safe(line))
+        pdf.ln(3)
+
+    # ── 2. Key Concepts & Definitions ──
+    concepts = knowledge.get("concepts") or []
+    definitions = knowledge.get("definitions") or []
+    formulae = knowledge.get("formulae") or []
+    if concepts or definitions:
+        section_header("2. Key Concepts, Definitions & Formulae")
+        pdf.set_font('Helvetica', '', 9.5)
+        pdf.set_text_color(30, 41, 59)
+        for c in concepts:
+            name = c if isinstance(c, str) else c.get("name", "")
+            desc = "" if isinstance(c, str) else c.get("description", "")
+            pdf.multi_cell(0, 5, _safe(f"  * {name}: {desc}"))
+        for d in definitions:
+            term = d if isinstance(d, str) else d.get("term", "")
+            defn = "" if isinstance(d, str) else d.get("definition", "")
+            pdf.multi_cell(0, 5, _safe(f"  * {term}: {defn}"))
+        if formulae:
+            pdf.ln(1)
+            pdf.set_font('Helvetica', 'B', 10)
+            pdf.cell(0, 6, "Formulae:", 0, 1, 'L')
+            pdf.set_font('Courier', '', 9)
+            for f in formulae:
+                name = f if isinstance(f, str) else f.get("name", "")
+                expr = "" if isinstance(f, str) else (f.get("latex", "") or f.get("plain_text", ""))
+                pdf.multi_cell(0, 5, _safe(f"  {name}: {expr}"))
+        pdf.ln(4)
+
+    # ── 3. Lesson Plan ──
+    periods = lesson_plan.get("periods") or []
+    if periods:
+        section_header("3. Multi-Period Lesson Plan")
+        for p in periods:
+            p_num = p.get("period_number", 1)
+            p_title = p.get("title", f"Period {p_num}")
+            pdf.set_font('Helvetica', 'B', 10.5)
+            pdf.set_text_color(30, 58, 138)
+            pdf.cell(0, 6, _safe(f"Period {p_num}: {p_title}").replace('\n', ' '), 0, 1, 'L')
+            pdf.set_font('Helvetica', '', 9.5)
+            pdf.set_text_color(51, 65, 85)
+            objectives_list = p.get("learning_objectives", [])
+            if objectives_list:
+                pdf.multi_cell(0, 5, _safe(f"Objectives: {', '.join(str(o) for o in objectives_list)}"))
+            pdf.multi_cell(0, 5, _safe(f"Methodology: {p.get('teaching_methodology', '')}"))
+            concepts_covered = p.get("concepts_covered", [])
+            if concepts_covered:
+                pdf.multi_cell(0, 5, _safe(f"Concepts: {', '.join(str(c) for c in concepts_covered)}"))
+            pdf.ln(2)
+
+    # ── 4. Teacher Scripts ──
+    if period_contents:
+        section_header("4. Teacher Delivery Scripts")
+        for pc in period_contents:
+            p_num = pc.get("period_number", 1)
+            pdf.set_font('Helvetica', 'B', 10.5)
+            pdf.set_text_color(15, 23, 42)
+            pdf.cell(0, 6, _safe(f"Period {p_num}:").replace('\n', ' '), 0, 1, 'L')
+
+            # Entry ticket
+            entry = pc.get("entry_ticket", {})
+            if entry and entry.get("question"):
+                pdf.set_font('Helvetica', 'BI', 9)
+                pdf.set_text_color(99, 102, 241)
+                pdf.multi_cell(0, 5, _safe(f"Entry Ticket: {entry['question']}"))
+
+            pdf.set_font('Helvetica', '', 9)
+            pdf.set_text_color(51, 65, 85)
+            script = pc.get("teacher_script", "")
+            pdf.multi_cell(0, 4.5, _safe(script, 1200))
+            pdf.ln(1)
+
+            bb = pc.get("blackboard_notes", "")
+            if bb:
+                pdf.set_font('Courier', '', 8.5)
+                pdf.multi_cell(0, 4, _safe(f"Board Notes: {bb}", 600))
+
+            exit_t = pc.get("exit_ticket", {})
+            if exit_t and exit_t.get("question"):
+                pdf.set_font('Helvetica', 'BI', 9)
+                pdf.set_text_color(234, 88, 12)
+                pdf.multi_cell(0, 5, _safe(f"Exit Ticket: {exit_t['question']}"))
+            pdf.ln(3)
+
+    # ── 5. Activities ──
+    if activities:
+        section_header("5. Classroom Activities")
+        for act in activities:
+            title = act.get("title", "Activity")
+            pdf.set_font('Helvetica', 'B', 10)
+            pdf.set_text_color(30, 58, 138)
+            pdf.cell(0, 6, _safe(f"* {title} ({act.get('duration_minutes', 15)} mins, {act.get('type', 'Interactive')})").replace('\n', ' '), 0, 1, 'L')
+            pdf.set_font('Helvetica', '', 9)
+            pdf.set_text_color(51, 65, 85)
+            student_inst = act.get("student_instructions", "")
+            teacher_inst = act.get("teacher_instructions", [])
+            if student_inst:
+                pdf.multi_cell(0, 4.5, _safe(f"Student Instructions: {student_inst}"))
+            if teacher_inst:
+                pdf.multi_cell(0, 4.5, _safe(f"Teacher Guidance: {'; '.join(str(t) for t in teacher_inst)}"))
+            materials = act.get("materials_needed", [])
+            if materials:
+                pdf.multi_cell(0, 4.5, _safe(f"Materials: {', '.join(str(m) for m in materials)}"))
+            pdf.ln(2)
+
+    # ── 6. Assessments ──
+    section_header("6. A/B Test Assessments")
+    for var_key, var_label in [("variant_a", "Variant A (Standard)"), ("variant_b", "Variant B (Deep Reasoning)")]:
+        variant = assessments.get(var_key, {})
+        pdf.set_font('Helvetica', 'B', 10)
+        pdf.set_text_color(15, 23, 42)
+        pdf.cell(0, 6, _safe(var_label).replace('\n', ' '), 0, 1, 'L')
+        pdf.set_font('Helvetica', '', 9)
+        pdf.set_text_color(51, 65, 85)
+
+        mcqs = variant.get("mcqs") or []
+        for i, q in enumerate(mcqs):
+            pdf.multi_cell(0, 4.5, _safe(f"Q{i+1}. {q.get('question', '')}"))
+            for oIdx, opt in enumerate(q.get("options", [])):
+                pdf.multi_cell(0, 4.5, _safe(f"   ({chr(65+oIdx)}) {opt}"))
+            pdf.set_text_color(16, 185, 129)
+            pdf.multi_cell(0, 4.5, _safe(f"   Answer: {q.get('correct_option', '')} — {q.get('explanation', '')}"))
+            pdf.set_text_color(51, 65, 85)
+
+        short_ans = variant.get("short_answer") or []
+        for i, q in enumerate(short_ans):
+            pdf.multi_cell(0, 4.5, _safe(f"Q{i+1}. {q.get('question', '')}"))
+            pdf.set_text_color(16, 185, 129)
+            pdf.multi_cell(0, 4.5, _safe(f"   Model Answer: {q.get('model_answer', '')}"))
+            pdf.set_text_color(51, 65, 85)
+        pdf.ln(2)
+
+    # ── 7. Gap Analysis ──
+    gaps_list = gap_data.get("gaps") or []
+    if gaps_list:
+        section_header("7. Learning Gap Analysis & Remediation")
+        for g in gaps_list:
+            pdf.set_font('Helvetica', 'B', 9.5)
+            pdf.set_text_color(220, 38, 38)
+            pdf.cell(0, 5, _safe(f"Gap: {g.get('concept', '')} — {g.get('misconception', '')}").replace('\n', ' '), 0, 1, 'L')
+            pdf.set_font('Helvetica', '', 9)
+            pdf.set_text_color(51, 65, 85)
+            if g.get("why_students_think_this"):
+                pdf.multi_cell(0, 4.5, _safe(f"Root Cause: {g['why_students_think_this']}"))
+            if g.get("diagnostic_question"):
+                pdf.multi_cell(0, 4.5, _safe(f"Diagnostic: {g['diagnostic_question']}"))
+            if g.get("remedial_action"):
+                pdf.set_text_color(16, 185, 129)
+                pdf.multi_cell(0, 4.5, _safe(f"Remediation: {g['remedial_action']}"))
+                pdf.set_text_color(51, 65, 85)
+            pdf.multi_cell(0, 4.5, _safe(f"Severity: {g.get('severity', 'Medium')}"))
+            pdf.ln(2)
+
+    # ── 8. Validation Summary ──
+    if validation:
+        section_header("8. Quality Validation Report")
+        pdf.set_font('Helvetica', '', 9.5)
+        pdf.set_text_color(30, 41, 59)
+        completeness = validation.get("completeness_score", 0)
+        consistency = validation.get("consistency_score", 0)
+        overall = round((completeness + consistency) / 2) if completeness and consistency else 'N/A'
+        pdf.multi_cell(0, 5, _safe(f"Overall Score: {overall}/100"))
+        
+        flags = validation.get('hallucination_flags', 0)
+        if isinstance(flags, list):
+            pdf.multi_cell(0, 5, _safe(f"Hallucination Flags: {len(flags)}"))
+            for flag in flags:
+                flag_text = flag.get("description", str(flag)) if isinstance(flag, dict) else str(flag)
+                pdf.multi_cell(0, 5, _safe(f"  - {flag_text}"))
+        elif isinstance(flags, dict):
+            pdf.multi_cell(0, 5, _safe(f"Hallucination Flags: 1"))
+            flag_text = flags.get("description", str(flags))
+            pdf.multi_cell(0, 5, _safe(f"  - {flag_text}"))
+        else:
+            pdf.multi_cell(0, 5, _safe(f"Hallucination Flags: {flags}"))
+            
+        issues = validation.get("issues") or []
+        if issues:
+            for issue in issues:
+                if isinstance(issue, str):
+                    pdf.multi_cell(0, 5, _safe(f"  - {issue}"))
+                elif isinstance(issue, dict):
+                    pdf.multi_cell(0, 5, _safe(f"  - {issue.get('description', str(issue))}"))
+        pdf.ln(3)
+
+    pdf.output(out_path)
 
 
 # ═══════════════════════════════════════════════════════
@@ -428,23 +690,21 @@ class PublishingStage(BaseStage):
         except Exception as e:
             logger.error(f"JSON export error: {e}")
 
-        # 1. Generate DOCX first
+        # PDF
+        try:
+            generate_pdf(state, pdf_path)
+            results["pdf_path"] = pdf_path
+            logger.info(f"Generated PDF at: {pdf_path}")
+        except Exception as e:
+            logger.error(f"PDF export error: {e}")
+
+        # DOCX
         try:
             generate_docx(state, docx_path)
             results["docx_path"] = docx_path
             logger.info(f"Generated DOCX at: {docx_path}")
         except Exception as e:
             logger.error(f"DOCX export error: {e}")
-
-        # 2. Generate PDF by converting DOCX using docx2pdf
-        try:
-            from docx2pdf import convert
-            # Convert DOCX to PDF (requires MS Word on Windows/Mac)
-            convert(docx_path, pdf_path)
-            results["pdf_path"] = pdf_path
-            logger.info(f"Generated PDF at: {pdf_path}")
-        except Exception as e:
-            logger.error(f"PDF export error (docx2pdf): {e}")
 
         # PPTX
         try:
