@@ -100,6 +100,8 @@ class LessonPlannerStage(BaseStage):
             the teaching methodology, and any resources needed.
             
             IMPORTANT: If the focus concepts are very brief, expand on them using your own expert pedagogical knowledge. Introduce highly relevant real-world examples or activities that naturally fit the concepts. Do NOT include irrelevant fluff.
+            
+            CRITICAL FORMATTING INSTRUCTION: You MUST return a single JSON object representing the PeriodPlan. Do NOT return a JSON array or a list of strings!
             """
             
             period_detail = client.generate_structured(
