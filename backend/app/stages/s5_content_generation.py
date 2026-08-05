@@ -24,9 +24,9 @@ class ContentGenerationStage(BaseStage):
                 status_callback(f"Stage 5: Generating Content ({i+1}/{total} periods)", prog)
                 
             system_prompt = (
-                "You are a Senior Curriculum Designer and Veteran Teacher operating in a Critic-Creator loop. "
-                "Provide a brief pedagogical critique reflection, then create the detailed instructional content: "
-                "entry ticket, detailed teacher script, blackboard notes, checkpoint questions, exit ticket, and homework."
+                "You are a Senior Curriculum Designer. Output ONLY the requested JSON data. "
+                "CRITICAL: Your output MUST be extremely concise to fit within strict token limits. "
+                "Limit your teacher script to 2 short paragraphs. Limit arrays (questions, homework) to 2 items max."
             )
             prompt = f"""
             Generate instructional materials for Period {period.period_number}.
@@ -40,8 +40,12 @@ class ContentGenerationStage(BaseStage):
             
             Methodology: {period.teaching_methodology}
             
-            IMPORTANT: If the provided concepts or objectives are brief, fill in the gaps with your own rich pedagogical knowledge to create a fully detailed, engaging script and comprehensive notes. Add relevant real-world examples.
-            CRITICAL LENGTH LIMIT: You must keep your response concise. Do NOT exceed 800 words total across all fields. Keep explanations punchy and direct to avoid getting cut off by token limits.
+            IMPORTANT: Add relevant real-world examples, but KEEP IT VERY BRIEF. 
+            CRITICAL LENGTH LIMITS (Violating these will crash the system):
+            - teacher_script: MAX 150 words.
+            - blackboard_notes: MAX 50 words.
+            - checkpoint_questions: MAX 2 items.
+            - homework: MAX 2 items.
             
             CRITICAL FORMATTING INSTRUCTION: For fields like `teacher_script` and `blackboard_notes` which expect a string, you MUST output a single continuous string (use \\n for line breaks). Do NOT output a nested JSON object or dictionary for these fields, otherwise the JSON validation will fail!
             """

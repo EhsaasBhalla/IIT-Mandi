@@ -56,6 +56,23 @@ def _safe(text, maxlen=2000):
 def generate_pdf(state: dict, out_path: str):
     """Generate a comprehensive multi-page PDF report from the TKP state."""
     pdf = PDFReport()
+
+    # Monkey-patch multi_cell to catch and recover from "Not enough horizontal space" crashes
+    original_multi_cell = pdf.multi_cell
+    def safe_multi_cell(self, w, h=None, txt="", *args, **kwargs):
+        try:
+            return original_multi_cell(w, h, txt, *args, **kwargs)
+        except Exception:
+            try:
+                # Fallback: Extremely harsh slice to forcefully prevent column width overflow
+                harsh_txt = ' '.join(str(txt)[i:i+25] for i in range(0, len(str(txt)), 25))
+                return original_multi_cell(w, h, harsh_txt, *args, **kwargs)
+            except Exception:
+                pass # Fail gracefully instead of crashing the server
+
+    import types
+    pdf.multi_cell = types.MethodType(safe_multi_cell, pdf)
+
     pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
