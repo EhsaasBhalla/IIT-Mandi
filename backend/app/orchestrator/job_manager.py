@@ -116,6 +116,8 @@ class JobManager:
         thread.daemon = True
         thread.start()
         
+        return job_id
+        
     def resume_job(self, job_id: str):
         """Manually resume a specific job ID if it failed/interrupted."""
         job = self.jobs.get(job_id)
