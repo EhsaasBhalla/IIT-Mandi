@@ -12,7 +12,7 @@ class Config:
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload
     
     # LLM Settings
-    LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'huggingface') # 'gemini', 'openai', 'groq', or 'huggingface'
+    LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'groq') # 'gemini', 'openai', 'groq', or 'huggingface'
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
     GROQ_API_KEY = os.environ.get('GROQ_API_KEY')

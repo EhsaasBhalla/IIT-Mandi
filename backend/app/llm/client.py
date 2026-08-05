@@ -27,7 +27,7 @@ class LLMClient:
             self.available_providers.append('huggingface')
             
         # Default fallback order if auto
-        default_order = ['gemini', 'groq', 'openai', 'huggingface']
+        default_order = ['groq', 'gemini', 'openai', 'huggingface']
         
         # Determine primary provider
         if provider and provider in self.available_providers:
