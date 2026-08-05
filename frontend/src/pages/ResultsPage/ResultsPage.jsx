@@ -391,7 +391,9 @@ const ResultsPage = () => {
         {/* VALIDATION QUALITY REPORT TAB */}
         {activeTab === 'validation' && (() => {
           const validation = data.validation || {};
-          const score = validation.overall_score || validation.score || 'N/A';
+          const completeness = validation.completeness_score || 0;
+          const consistency = validation.consistency_score || 0;
+          const score = (completeness && consistency) ? Math.round((completeness + consistency) / 2) : 'N/A';
           let hallFlags = validation.hallucination_flags || validation.hallucination_count || 0;
           
           if (Array.isArray(hallFlags)) {
@@ -401,7 +403,7 @@ const ResultsPage = () => {
           }
 
           // Defensive parsing to prevent crash if LLM hallucinates non-arrays
-          const rawIssues = validation.issues || [];
+          const rawIssues = validation.structural_flags || validation.issues || [];
           const issues = Array.isArray(rawIssues) ? rawIssues : (rawIssues ? [rawIssues] : []);
           
           const rawRecs = validation.recommendations || [];
