@@ -8,15 +8,26 @@ const ABTestView = ({ data }) => {
   const [copied, setCopied] = useState(false);
 
   const assessments = (data && (data.ab_test_assessment || data.assessments)) || {};
-  const variantA = assessments.variant_a || {};
-  const variantB = assessments.variant_b || {};
+  const getVariant = (obj, letter) => {
+    if (!obj) return {};
+    const exact = obj[`variant_${letter}`.toLowerCase()];
+    if (exact) return exact;
+    const regex = new RegExp(`variant[\\s_]*${letter}`, 'i');
+    const key = Object.keys(obj).find(k => regex.test(k));
+    return key ? obj[key] : {};
+  };
 
-  // Extract MCQs & Short Answer questions from both variants
-  const mcqsA = variantA.mcqs || [];
-  const saA = variantA.short_answer || [];
+  const variantA = getVariant(assessments, 'A');
+  const variantB = getVariant(assessments, 'B');
+
+  const getMCQs = (v) => v.mcqs || v.multiple_choice_questions || v.multiple_choice || v.questions?.filter(q => q.options) || Object.values(v).find(val => Array.isArray(val) && val[0]?.options) || [];
+  const getSA = (v) => v.short_answer || v.short_answer_questions || v.subjective || v.questions?.filter(q => !q.options) || Object.values(v).find(val => Array.isArray(val) && val[0]?.model_answer) || [];
+
+  const mcqsA = getMCQs(variantA);
+  const saA = getSA(variantA);
   
-  const mcqsB = variantB.mcqs || [];
-  const saB = variantB.short_answer || [];
+  const mcqsB = getMCQs(variantB);
+  const saB = getSA(variantB);
 
   const handleCopyVariant = (mcqs, sa, label) => {
     let text = `================ ${label} ================\n\n`;
@@ -144,7 +155,7 @@ const ABTestView = ({ data }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h3 style={{ margin: 0, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Sparkles size={20} color="#8b5cf6" /> Differentiated A/B Assessment Engine
+            <Sparkles size={20} color="#8b5cf6" /> Differentiated Assessments
           </h3>
           <p style={{ margin: '0.3rem 0 0 0', color: '#94a3b8', fontSize: '0.9rem' }}>
             {assessments.hypothesis || "Variant A tests foundational recall, while Variant B tests deep analytical application."}

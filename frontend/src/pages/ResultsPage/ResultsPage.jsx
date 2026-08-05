@@ -12,6 +12,8 @@ const ResultsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [currentScriptPage, setCurrentScriptPage] = useState(1);
+  const [currentPlanPage, setCurrentPlanPage] = useState(1);
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -128,7 +130,7 @@ const ResultsPage = () => {
           { id: 'lesson_plan', label: 'Lesson Plan & Sequence', icon: Layers },
           { id: 'scripts', label: 'Teacher Scripts & Content', icon: FileText },
           { id: 'activities', label: 'Class Activities', icon: Activity },
-          { id: 'assessments', label: 'A/B Assessments', icon: CheckCircle2 },
+          { id: 'assessments', label: 'Assessments', icon: CheckCircle2 },
           { id: 'gaps', label: 'Misconceptions & Remediation', icon: AlertTriangle },
           { id: 'validation', label: 'Quality Report', icon: CheckCircle },
         ].map((tab) => {
@@ -155,13 +157,26 @@ const ResultsPage = () => {
         )}
 
         {/* LESSON PLAN TAB */}
-        {activeTab === 'lesson_plan' && (
-          <div>
-            <h3 style={{ color: '#38bdf8', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Layers size={20} /> Multi-Period Curriculum Sequence ({lessonPlan.total_periods || periodContents.length || 3} Periods)
-            </h3>
-            {(lessonPlan.periods || []).map((p, idx) => (
-              <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid rgba(255,255,255,0.06)' }}>
+        {activeTab === 'lesson_plan' && (() => {
+          const periods = lessonPlan.periods || [];
+          if (periods.length === 0) return <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>No periods generated yet.</p>;
+          const p = periods[currentPlanPage - 1];
+          const idx = currentPlanPage - 1;
+          
+          return (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h3 style={{ color: '#38bdf8', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Layers size={20} /> Multi-Period Sequence ({periods.length} Periods)
+                </h3>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button onClick={() => setCurrentPlanPage(Math.max(1, currentPlanPage - 1))} disabled={currentPlanPage === 1} style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: currentPlanPage === 1 ? 'not-allowed' : 'pointer', border: 'none', background: currentPlanPage === 1 ? 'rgba(255,255,255,0.05)' : '#334155', color: currentPlanPage === 1 ? '#64748b' : '#f8fafc', fontWeight: 600 }}>&larr; Prev</button>
+                  <span style={{ fontSize: '0.85rem', color: '#94a3b8', padding: '0 0.5rem' }}>Period {currentPlanPage} of {periods.length}</span>
+                  <button onClick={() => setCurrentPlanPage(Math.min(periods.length, currentPlanPage + 1))} disabled={currentPlanPage === periods.length} style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: currentPlanPage === periods.length ? 'not-allowed' : 'pointer', border: 'none', background: currentPlanPage === periods.length ? 'rgba(255,255,255,0.05)' : '#334155', color: currentPlanPage === periods.length ? '#64748b' : '#f8fafc', fontWeight: 600 }}>Next &rarr;</button>
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <h4 style={{ margin: 0, color: '#818cf8', fontSize: '1.1rem' }}>
                     Period {p.period_number || idx + 1}: {p.title || `Period ${idx + 1}`}
@@ -200,18 +215,30 @@ const ResultsPage = () => {
                   </div>
                 )}
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          );
+        })()}
 
         {/* SCRIPTS & CONTENT TAB */}
-        {activeTab === 'scripts' && (
-          <div>
-            <h3 style={{ color: '#38bdf8', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FileText size={20} /> Teacher Lecture Scripts & Instructional Delivery
-            </h3>
-            {periodContents.map((pc, idx) => (
-              <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.4rem', borderRadius: '10px', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.06)' }}>
+        {activeTab === 'scripts' && (() => {
+          if (periodContents.length === 0) return <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>No scripts generated yet.</p>;
+          const pc = periodContents[currentScriptPage - 1];
+          const idx = currentScriptPage - 1;
+          
+          return (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h3 style={{ color: '#38bdf8', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={20} /> Teacher Lecture Scripts
+                </h3>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button onClick={() => setCurrentScriptPage(Math.max(1, currentScriptPage - 1))} disabled={currentScriptPage === 1} style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: currentScriptPage === 1 ? 'not-allowed' : 'pointer', border: 'none', background: currentScriptPage === 1 ? 'rgba(255,255,255,0.05)' : '#334155', color: currentScriptPage === 1 ? '#64748b' : '#f8fafc', fontWeight: 600 }}>&larr; Prev</button>
+                  <span style={{ fontSize: '0.85rem', color: '#94a3b8', padding: '0 0.5rem' }}>Period {currentScriptPage} of {periodContents.length}</span>
+                  <button onClick={() => setCurrentScriptPage(Math.min(periodContents.length, currentScriptPage + 1))} disabled={currentScriptPage === periodContents.length} style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: currentScriptPage === periodContents.length ? 'not-allowed' : 'pointer', border: 'none', background: currentScriptPage === periodContents.length ? 'rgba(255,255,255,0.05)' : '#334155', color: currentScriptPage === periodContents.length ? '#64748b' : '#f8fafc', fontWeight: 600 }}>Next &rarr;</button>
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.4rem', borderRadius: '10px', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <h4 style={{ margin: '0 0 1rem 0', color: '#38bdf8', fontSize: '1.15rem' }}>
                   Period {pc.period_number || idx + 1}: Instructional Script
                 </h4>
@@ -252,9 +279,9 @@ const ResultsPage = () => {
                   </div>
                 )}
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          );
+        })()}
 
         {/* ACTIVITIES TAB */}
         {activeTab === 'activities' && (
@@ -311,7 +338,7 @@ const ResultsPage = () => {
           </div>
         )}
 
-        {/* ASSESSMENTS TAB (A/B Test) */}
+        {/* ASSESSMENTS TAB */}
         {activeTab === 'assessments' && (
           <ABTestView data={data} />
         )}
@@ -366,8 +393,13 @@ const ResultsPage = () => {
           const validation = data.validation || {};
           const score = validation.overall_score || validation.score || 'N/A';
           const hallFlags = validation.hallucination_flags || validation.hallucination_count || 0;
-          const issues = validation.issues || [];
-          const recommendations = validation.recommendations || [];
+          
+          // Defensive parsing to prevent crash if LLM hallucinates non-arrays
+          const rawIssues = validation.issues || [];
+          const issues = Array.isArray(rawIssues) ? rawIssues : (rawIssues ? [rawIssues] : []);
+          
+          const rawRecs = validation.recommendations || [];
+          const recommendations = Array.isArray(rawRecs) ? rawRecs : (rawRecs ? [rawRecs] : []);
           return (
             <div>
               <h3 style={{ color: '#38bdf8', marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

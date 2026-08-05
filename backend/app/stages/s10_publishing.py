@@ -65,7 +65,7 @@ def generate_pdf(state: dict, out_path: str):
     def section_header(title):
         pdf.set_font('Helvetica', 'B', 14)
         pdf.set_text_color(15, 23, 42)
-        pdf.cell(0, 9, _safe(title), 0, 1, 'L')
+        pdf.cell(0, 9, _safe(title).replace('\n', ' '), 0, 1, 'L')
         pdf.set_draw_color(56, 189, 248)
         pdf.set_line_width(0.5)
         pdf.line(pdf.get_x(), pdf.get_y(), pdf.get_x() + 190, pdf.get_y())
@@ -74,11 +74,11 @@ def generate_pdf(state: dict, out_path: str):
     # ── COVER ──
     pdf.set_font('Helvetica', 'B', 22)
     pdf.set_text_color(30, 58, 138)
-    pdf.cell(0, 14, _safe(f"{subject}: {topic}"), 0, 1, 'L')
+    pdf.cell(0, 14, _safe(f"{subject}: {topic}").replace('\n', ' '), 0, 1, 'L')
     pdf.set_font('Helvetica', '', 11)
     pdf.set_text_color(71, 85, 105)
     total_periods = lesson_plan.get("total_periods", len(period_contents) or 3)
-    pdf.cell(0, 7, _safe(f"Grade {grade}  |  Board: {board}  |  {total_periods} Teaching Periods"), 0, 1, 'L')
+    pdf.cell(0, 7, _safe(f"Grade {grade}  |  Board: {board}  |  {total_periods} Teaching Periods").replace('\n', ' '), 0, 1, 'L')
     pdf.ln(6)
 
     # ── 1. Learning Objectives ──
@@ -132,7 +132,7 @@ def generate_pdf(state: dict, out_path: str):
             p_title = p.get("title", f"Period {p_num}")
             pdf.set_font('Helvetica', 'B', 10.5)
             pdf.set_text_color(30, 58, 138)
-            pdf.cell(0, 6, _safe(f"Period {p_num}: {p_title}"), 0, 1, 'L')
+            pdf.cell(0, 6, _safe(f"Period {p_num}: {p_title}").replace('\n', ' '), 0, 1, 'L')
             pdf.set_font('Helvetica', '', 9.5)
             pdf.set_text_color(51, 65, 85)
             objectives_list = p.get("learning_objectives", [])
@@ -151,7 +151,7 @@ def generate_pdf(state: dict, out_path: str):
             p_num = pc.get("period_number", 1)
             pdf.set_font('Helvetica', 'B', 10.5)
             pdf.set_text_color(15, 23, 42)
-            pdf.cell(0, 6, _safe(f"Period {p_num}:"), 0, 1, 'L')
+            pdf.cell(0, 6, _safe(f"Period {p_num}:").replace('\n', ' '), 0, 1, 'L')
 
             # Entry ticket
             entry = pc.get("entry_ticket", {})
@@ -185,7 +185,7 @@ def generate_pdf(state: dict, out_path: str):
             title = act.get("title", "Activity")
             pdf.set_font('Helvetica', 'B', 10)
             pdf.set_text_color(30, 58, 138)
-            pdf.cell(0, 6, _safe(f"* {title} ({act.get('duration_minutes', 15)} mins, {act.get('type', 'Interactive')})"), 0, 1, 'L')
+            pdf.cell(0, 6, _safe(f"* {title} ({act.get('duration_minutes', 15)} mins, {act.get('type', 'Interactive')})").replace('\n', ' '), 0, 1, 'L')
             pdf.set_font('Helvetica', '', 9)
             pdf.set_text_color(51, 65, 85)
             student_inst = act.get("student_instructions", "")
@@ -205,7 +205,7 @@ def generate_pdf(state: dict, out_path: str):
         variant = assessments.get(var_key, {})
         pdf.set_font('Helvetica', 'B', 10)
         pdf.set_text_color(15, 23, 42)
-        pdf.cell(0, 6, _safe(var_label), 0, 1, 'L')
+        pdf.cell(0, 6, _safe(var_label).replace('\n', ' '), 0, 1, 'L')
         pdf.set_font('Helvetica', '', 9)
         pdf.set_text_color(51, 65, 85)
 
@@ -233,7 +233,7 @@ def generate_pdf(state: dict, out_path: str):
         for g in gaps_list:
             pdf.set_font('Helvetica', 'B', 9.5)
             pdf.set_text_color(220, 38, 38)
-            pdf.cell(0, 5, _safe(f"Gap: {g.get('concept', '')} — {g.get('misconception', '')}"), 0, 1, 'L')
+            pdf.cell(0, 5, _safe(f"Gap: {g.get('concept', '')} — {g.get('misconception', '')}").replace('\n', ' '), 0, 1, 'L')
             pdf.set_font('Helvetica', '', 9)
             pdf.set_text_color(51, 65, 85)
             if g.get("why_students_think_this"):
@@ -253,7 +253,16 @@ def generate_pdf(state: dict, out_path: str):
         pdf.set_font('Helvetica', '', 9.5)
         pdf.set_text_color(30, 41, 59)
         pdf.multi_cell(0, 5, _safe(f"Overall Score: {validation.get('overall_score', 'N/A')}/100"))
-        pdf.multi_cell(0, 5, _safe(f"Hallucination Flags: {validation.get('hallucination_flags', 0)}"))
+        
+        flags = validation.get('hallucination_flags', 0)
+        if isinstance(flags, list):
+            pdf.multi_cell(0, 5, _safe(f"Hallucination Flags: {len(flags)}"))
+            for flag in flags:
+                flag_text = flag.get("description", str(flag)) if isinstance(flag, dict) else str(flag)
+                pdf.multi_cell(0, 5, _safe(f"  - {flag_text}"))
+        else:
+            pdf.multi_cell(0, 5, _safe(f"Hallucination Flags: {flags}"))
+            
         issues = validation.get("issues", [])
         if issues:
             for issue in issues:
@@ -468,7 +477,16 @@ def generate_docx(state: dict, out_path: str):
     if validation:
         doc.add_heading("8. Quality Validation Report", level=1)
         doc.add_paragraph(f"Overall Score: {validation.get('overall_score', 'N/A')}/100")
-        doc.add_paragraph(f"Hallucination Flags: {validation.get('hallucination_flags', 0)}")
+        
+        flags = validation.get('hallucination_flags', 0)
+        if isinstance(flags, list):
+            doc.add_paragraph(f"Hallucination Flags: {len(flags)}")
+            for flag in flags:
+                flag_text = flag.get("description", str(flag)) if isinstance(flag, dict) else str(flag)
+                doc.add_paragraph(f"  - {flag_text}")
+        else:
+            doc.add_paragraph(f"Hallucination Flags: {flags}")
+            
         issues = validation.get("issues", [])
         for issue in issues:
             text = issue if isinstance(issue, str) else issue.get("description", str(issue))
@@ -500,7 +518,7 @@ def generate_pptx(state: dict, out_path: str):
     board = classification.get("curriculum_board", "CBSE/NCERT")
     total_periods = lesson_plan.get("total_periods", len(period_contents) or 3)
 
-    def add_slide(title_text, body_text=""):
+    def _create_single_slide(title_text, body_text):
         slide_layout = prs.slide_layouts[1]  # Title and Content
         slide = prs.slides.add_slide(slide_layout)
         title = slide.shapes.title
@@ -508,8 +526,33 @@ def generate_pptx(state: dict, out_path: str):
             title.text = str(title_text)
         body = slide.placeholders[1] if len(slide.placeholders) > 1 else None
         if body and body_text:
-            body.text = str(body_text)[:3000]
+            body.text = str(body_text)
         return slide
+
+    def add_slide(title_text, body_text=""):
+        if body_text:
+            # Strip multiple newlines so PPTX doesn't render empty bullets
+            lines = [line.strip() for line in str(body_text).split("\n") if line.strip()]
+            body_text = "\n".join(lines)
+            
+        chunk_size = 650 # Max characters before text overflows slide
+        if not body_text or len(body_text) <= chunk_size:
+            return _create_single_slide(title_text, body_text)
+
+        # Chunk the text so it doesn't spill off the bottom
+        lines = body_text.split('\n')
+        current_chunk = ""
+        part = 1
+        for line in lines:
+            if len(current_chunk) + len(line) > chunk_size and current_chunk:
+                _create_single_slide(f"{title_text} (Part {part})", current_chunk.strip())
+                current_chunk = line + "\n"
+                part += 1
+            else:
+                current_chunk += line + "\n"
+        if current_chunk.strip():
+            _create_single_slide(f"{title_text} (Part {part})", current_chunk.strip())
+        return None
 
     def add_title_slide(title_text, subtitle_text):
         slide_layout = prs.slide_layouts[0]
@@ -558,7 +601,7 @@ def generate_pptx(state: dict, out_path: str):
     # ── Slides: Teacher Scripts ──
     for pc in period_contents[:5]:
         p_num = pc.get("period_number", 1)
-        script = str(pc.get("teacher_script", ""))[:2500]
+        script = str(pc.get("teacher_script", ""))
         add_slide(f"Period {p_num} — Teacher Script", script)
 
     # ── Slide: Activities ──

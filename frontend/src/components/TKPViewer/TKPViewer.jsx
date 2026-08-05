@@ -121,6 +121,14 @@ const TKPViewer = ({ data }) => {
               {topic.length > 18 ? topic.slice(0, 18) + '...' : topic}
             </text>
 
+            {/* Connection lines to center */}
+            {graphLayout.map((node, idx) => (
+              <line key={`center-${idx}`} x1="400" y1="280" x2={node.x} y2={node.y}
+                stroke={selectedIdx === idx ? node.color : 'rgba(255,255,255,0.06)'}
+                strokeWidth={selectedIdx === idx ? 2 : 1}
+              />
+            ))}
+
             {/* Concept Nodes */}
             {graphLayout.map((node, idx) => {
               const isSelected = selectedIdx === idx;
@@ -146,14 +154,6 @@ const TKPViewer = ({ data }) => {
                 </g>
               );
             })}
-
-            {/* Connection lines to center */}
-            {graphLayout.map((node, idx) => (
-              <line key={`center-${idx}`} x1="400" y1="280" x2={node.x} y2={node.y}
-                stroke={selectedIdx === idx ? node.color : 'rgba(255,255,255,0.06)'}
-                strokeWidth={selectedIdx === idx ? 2 : 1}
-              />
-            ))}
           </svg>
         </div>
 
