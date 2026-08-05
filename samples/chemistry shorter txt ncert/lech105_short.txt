@@ -1,0 +1,195 @@
+hese compounds as vital components
+of biological systems. Chlorophyll, haemoglobin and
+vitamin B12 are coordination compounds of magnesium,
+iron and cobalt r espectively. Variety of metallur gical
+processes, industrial catalysts and analytical reagents
+involve the use of coordination compounds.
+Coordination compounds also find many applications
+in electroplating, textile dyeing and medicinal chemistry.
+Coordination
+Compounds
+After studying this Unit, you will be
+able to
+• appreciate the postulates of
+Werner’s theory of coor dination
+compounds;
+• know the meaning of the terms:
+coordination entity, central atom/
+ion, ligand, coor dination number ,
+coordination sphere, coordination
+polyhedr on, oxidation number ,
+homoleptic and heteroleptic;
+• learn the rules of nomenclature
+of coordination compounds;
+• write the formulas and names
+of mononuclear coordination
+compounds;
+• define different types of isomerism
+in coordination compounds;
+• understand the nature of bonding
+in coordination compounds in
+terms of the V alence Bond and
+Crystal Field theories;
+• appreciate the importance and
+applications of coordination
+compounds in our day to day life.
+Objectives
+Coordination Compounds are the backbone of modern inorganic
+and bio–inorganic chemistry and chemical industry.
+Coordination
+Compounds
+Alfred Werner (1866-1919), a Swiss chemist was the first to formulate
+his ideas about the structures of coordination compounds. He prepared
+and characterised a large number of coordination compounds and
+studied their physical and chemical behaviour by simple experimental
+techniques. Werner proposed the concept of a primary valence and
+a secondary valence  for a metal ion. Binary compounds such as
+CrCl3, CoCl2 or PdCl2 have primary valence of 3, 2 and 2 respectively.
+In a series of compounds of cobalt(III) chloride with ammonia, it was
+found that some of the chloride ions could be precipitated as AgCl on
+adding excess silver nitrate solution in cold but some remained in
+solution.
+5.1 5.15.1 5.15.1 Werner’Werner’Werner’
+Werner’Werner’ s ss ss
+Theory of Theory ofTheory ofTheory ofTheory of
+CoordinationCoordinationCoordinationCoordinationCoordination
+Compounds
+CompoundsCompounds CompoundsCompounds
+5
+Unit UnitUnit UnitUnit
+5
+Reprint 2026-27
+
+119 Coordination Compounds
+1 mol CoCl3.6NH3 (Yellow)  gave 3 mol AgCl
+1 mol CoCl3.5NH3 (Purple)  gave 2 mol AgCl
+1 mol CoCl3.4NH3 (Green)  gave 1 mol AgCl
+1 mol CoCl3.4NH3 (Violet)  gave 1 mol AgCl
+These observations, together with the results of conductivity
+measurements in solution can be explained if (i) six groups in all,
+either chloride ions or ammonia molecules or both, remain bonded to
+the cobalt ion during the reaction and (ii) the compounds are formulated
+as shown in Table 5.1, where the atoms within the square brackets
+form a single entity which does not dissociate under the reaction
+conditions. W erner pr oposed the ter m secondary valence  for the
+number of groups bound directly to the metal ion; in each of these
+examples the secondary valences are six.
+Note that the last two compounds in Table 5.1 have identical empirical
+formula, CoCl 3.4NH3, but distinct properties. Such compounds are
+termed as isomers. W erner in 1898, pr opounded his theory of
+coordination compounds. The main postulates are:
+1. In coordination compounds metals show two types of linkages
+(valences)-primary and secondary.
+2. The primary valences are normally ionisable and are satisfied by
+negative ions.
+3. The secondary valences are non ionisable. These are satisfied by
+neutral molecules or negative ions. The secondary valence is equal to
+the coordination number and is fixed for a metal.
+4. The ions/groups bound by the secondary linkages to the metal have
+characteristic spatial arrangements corresponding to different
+coordination numbers.
+In modern formulations, such spatial arrangements are called
+coordination polyhedra. The species within the square bracket are
+coordination entities or complexes and the ions outside the square
+bracket are called counter ions.
+He further postulated that octahedral, tetrahedral and square planar
+geometrical shapes are more common in coordination compounds of
+transition metals. Thus, [Co(NH 3)6]
+3+
+, [CoCl(NH3)5]
+2+
+ and [CoCl 2(NH3)4]
++
+are octahedral entities, while [Ni(CO)4] and [PtCl4]
+2–
+ are tetrahedral and
+square planar, respectively.
+Colour Formula Solution conductivity
+corresponds to
+Table 5.1: Formulation of Cobalt(III) Chloride-Ammonia Complexes
+Yellow [Co(NH3)6]
+3+
+3Cl
+–
+1:3 electrolyte
+Purple [CoCl(NH 3)5]
+2+
+2Cl
+–
+1:2 electrolyte
+Green [CoCl2(NH3)4]
++
+Cl
+–
+1:1 electrolyte
+Violet [CoCl2(NH3)4]
++
+Cl
+–
+1:1 electrolyte
+Reprint 2026-27
+
+120Chemistry
+(i) Secondary 4 (ii) Secondary 6
+(iii) Secondary 6 (iv) Secondary 6 (v) Secondary 4
+On the basis of the following observations made with aqueous solutions,
+assign secondary valences to metals in the following compounds:
+Solution SolutionSolution SolutionSolution
+Difference between a double salt and a complex
+Both double salts as well as complexes are formed by the combination
+of two or more stable compounds in stoichiometric ratio. However, they
+differ in the fact that double salts such as carnallite, KCl.MgCl 2.6H2O,
+Mohr’s salt, FeSO4.(NH4)2SO4.6H2O, potash alum, KAl(SO4)2.12H2O, etc.
+dissociate into simple ions completely when dissolved in water. However,
+complex ions such as [Fe(CN) 6]
+4– 
+of K4[Fe(CN)6] do not dissociate into
+Fe
+2+
+ and CN
+–
+ ions.
+Formula Moles of AgCl precipitated per mole of
+the compounds with excess AgNO 3
+(i) PdCl2.4NH3 2
+(ii) NiCl2.6H2O 2
+(iii) PtCl4.2HCl 0
+(iv) CoCl3.4NH3 1
+(v) PtCl2.2NH3 0
+Example 5.1 Example 5.1Example 5.1 Example 5.1Example 5.1
+Werner WernerWerner WernerWerner was born on December 12, 1866, in Mülhouse,
+a small community in the French province of Alsace.
+His study of chemistry began in Karlsruhe (Germany)
+and continued in Zurich (Switzerland), where in his
+doctoral thesis in 1890, he explained the difference in
+properties of certain nitrogen containing organic
+substances on the basis of isomerism. He extended vant
+Hoff’s theory of tetrahedral carbon atom and modified
+it for nitr ogen. W erner showed optical and electrical dif fer ences between
+complex compounds based on physical measur ements. In fact, W erner was
+the first to discover optical activity in certain coordination compounds.
+He, at the age of 29 years became a full professor at Technische
+Hochschule in Zurich in 1895. Alfr ed W erner was a chemist and educationist.
+His accomplishments included the development of the theory of coordination
+compounds. This theory, in which W erner pr oposed r evolutionary ideas about
+how atoms and molecules ar e linked together , was for mulated in a span of
+only three years, from 1890 to 1893. The remainder of his career was spent
+gathering the experimental support r equir ed to validate his new ideas. W erner
+became the first Swiss chemist to win the Nobel Prize in 1913 for his work
+on the linkage of atoms and the coordination theory.
+(1866-1919)(1866-1919)(1866-1919)(1866-1919)(1866-1919)
+Reprint 2026-27
+
+121 Coordination Compounds
+(a) Coordination entity
+A coordination entity constitutes a central metal atom or ion bonded
+to a fixed number of ions or molecules. For example, [CoCl 3(NH3)3]
+is a coordination entity in which the cobalt ion is surrounded by
+three ammonia molecules and three chloride ions. Other examples
+are [Ni(CO)4], [PtCl2(NH3)2], [Fe(CN)6]
+4–
+, [Co(NH3)6]
+3+
+.
+(b) Central atom/ion
+In a coordination entity, the atom/ion

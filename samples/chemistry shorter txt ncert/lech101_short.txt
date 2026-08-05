@@ -1,0 +1,200 @@
+ns.
+In normal life we rarely come across pure substances.
+Most of these are mixtures containing two or more pure
+substances. Their utility or importance in life depends
+on their composition. For example, the properties of
+brass (mixture of copper and zinc) are quite different
+from those of Ger man silver (mixtur e of copper , zinc
+and nickel) or bronze (mixture of copper and tin);
+1 part per million (ppm) of fluoride ions in water
+prevents tooth decay, while 1.5 ppm causes the tooth
+to become mottled and high concentrations of fluoride
+ions can be poisonous (for example, sodium fluoride is
+used in rat poison); intravenous injections are always
+dissolved in water containing salts at particular ionic
+concentrations that match with blood plasma
+concentrations and so on.
+In this Unit, we will consider mostly liquid
+solutions and their formation. This will be followed by
+studying the properties of the solutions, like vapour
+pressure and colligative pr operties. We will begin with
+types of solutions and then various alternatives in
+which concentrations of a solute can be expressed in
+liquid solution.
+SolutionsSolutions
+Almost all processes in body occur in some kind of liquid solutions.
+Objectives
+1.11.11.1 1.11.1 Types of Types ofTypes ofTypes ofTypes of
+Solutions
+SolutionsSolutions SolutionsSolutions
+1
+UnitUnitUnitUnitUnit
+1
+Solutions are homogeneous mixtures of two or more than two
+components. By homogenous mixture we mean that its composition
+and properties are uniform throughout the mixture. Generally, the
+component that is present in the largest quantity is known as solvent.
+Solvent determines the physical state in which solution exists. One or
+more components present in the  solution other than solvent are called
+solutes. In this Unit we shall consider only 
+binary solutions  (i.e.,
+Reprint 2026-27
+
+2Chemistry
+Type of Solution Solute Solvent Common Examples
+Gaseous Solutions Gas Gas Mixture of oxygen and nitrogen gases
+Liquid Gas Chloroform mixed with nitrogen gas
+Solid Gas Camphor in nitrogen gas
+Liquid Solutions Gas Liquid Oxygen dissolved in water
+Liquid Liquid Ethanol dissolved in water
+Solid Liquid Glucose dissolved in water
+Solid Solutions Gas Solid Solution of hydrogen in palladium
+Liquid Solid Amalgam of mercury with sodium
+Solid Solid Copper dissolved in gold
+Table 1.1: Types of Solutions
+consisting of two components). Here each component may be
+solid, liquid or in gaseous state and are summarised in Table  1.1.
+Composition of a solution can be described by expressing its
+concentration. The latter can be expressed either qualitatively
+or quantitatively. For example, qualitatively we can say that the
+solution is dilute (i.e., relatively very small quantity of solute)
+or it is concentrated (i.e., relatively very large quantity of
+solute). But in real life these kinds of description can add to
+lot of confusion and thus the need for a quantitative description
+of the solution.
+There are several ways by which we can describe the concentration
+of the solution quantitatively.
+(i) Mass percentage (w/w): The mass percentage of a component of a
+solution is defined as:
+Mass % of a component
+= Mass of the component in the solution 100
+Total mass of the solution (1.1)
+For example, if a solution is described by 10% glucose in water by
+mass, it means that 10 g of glucose is dissolved in 90 g of water
+resulting in a 100 g solution. Concentration described by mass
+percentage is commonly used in industrial chemical applications.
+For example, commercial bleaching solution contains 3.62 mass
+percentage of sodium hypochlorite in water .
+(ii) Volume percentage (V/V
+): The volume percentage is defined as:
+Volume % of a component = Volume of  the component 100
+Total volume of  solution
+(1.2)
+1.2 1.21.21.21.2 Expressing
+ExpressingExpressing ExpressingExpressing
+ConcentrationConcentrationConcentrationConcentrationConcentration
+of Solutions of Solutionsof Solutions of Solutionsof Solutions
+Reprint 2026-27
+
+3 Solutions
+For example, 10% ethanol solution in water means that 10 mL
+of ethanol is dissolved in water such that the total volume of
+the solution is 100 mL. Solutions containing liquids are commonly
+expressed in this unit. For example, a 35% ( v/v) solution of
+ethylene glycol, an antifreeze, is used in cars for cooling the
+engine. At this concentration the antifreeze lowers the freezing
+point of water to 255.4K (–17.6°C).
+(iii) Mass by volume percentage ( w/V) : Another unit which is
+commonly used in medicine and pharmacy is mass by
+volume percentage. It is the mass of solute dissolved in
+100 mL of the solution.
+(iv) Parts per million: When a solute is present in trace quantities, it
+is convenient to express concentration in parts per million (ppm)
+and is defined as:
+Parts per million =
+ 
+6Number of parts of the component ×10
+Total number of parts of all components of the solution (1.3)
+As in the case of percentage, concentration in parts per million can
+also be expressed as mass to mass, volume to volume and mass to
+volume. A litre of sea water (which weighs 1030 g) contains about
+6 × 10
+–3
+ g of dissolved oxygen (O 2). Such a small concentration is
+also expr essed as 5.8 g per 10
+6
+ g (5.8 ppm) of sea water . The
+concentration of pollutants in water or atmosphere is often expressed
+in terms of mg mL
+–1
+ or ppm.
+(v) Mole fraction: Commonly used symbol for mole fraction is x and
+subscript used on the right hand side of x denotes the component.
+It is defined as:
+Mole fraction of a component =
+Number of moles of the component
+Total number of moles of all the compone nts (1.4)
+For example, in a binary mixture, if the number of moles of A and B are
+nA and nB respectively, the mole fraction of A will be
+xA = 
+A
+A B  
+n
+n n (1.5)
+For a solution containing i number of components, we have:
+xi = 
+  
+i
+1 2 i
+  
+  .......
+n
+n n n
+ = 
+
+i
+i
+n
+n (1.6)
+It can be shown that in a given solution sum of all the mole
+fractions is unity, i.e.
+x1 + x2 + .................. + xi = 1 (1.7)
+Mole fraction unit is very useful in relating some physical properties
+of solutions, say vapour pressure with the concentration of the
+solution and quite useful in describing the calculations involving
+gas mixtures.
+Reprint 2026-27
+
+4Chemistry
+Calculate the mole fraction of ethylene glycol (C 2H6O2) in a solution
+containing 20% of C2H6O2 by mass.
+Assume that we have 100 g of solution (one can start with any amount of
+solution because the results obtained will be the same). Solution will
+contain 20 g of ethylene glycol and 80 g of water.
+Molar mass of C2H6O2 = 12 × 2 + 1 × 6 + 16 × 2 = 62 g mol–1.
+Moles of C2H6O2 = 1
+20 g
+62 g mol = 0.322 mol
+Moles of water = -1
+80 g
+18 g mol  = 4.444 mol
+ 
+2 6 2
+glyc
+ol
+2 6 2 2
+moles of C H Ox moles of C H O moles of H O
+           
+0.322 mol
+0.322mol 4.444 mol  =  0.068
+Similarly,  
+
+water
+4.444 mol 0.932
+0.322 mol  4.444 mol
+x
+Mole fraction of water can also be calculated as: 1 – 0.068 = 0.932
+Example 1.1 Example 1.1Example 1.1 Example 1.1Example 1.1
+(vi) Molarity: Molarity (M) is defined as number of moles of solute dissolved
+in one litre (or one cubic decimetre) of solution,
+ Moles of soluteMolarity Volume of solution in litre (1.8)
+For example, 0.25 mol L–1 (or 0.25 M) solution of NaOH means that
+0.25 mol of NaOH has been dissolved in one litre (or one cubic decimetre).
+Example 1.2 Example 1.2Example 1.2 Example 1.2Example 1.2 Calculate the molarity of a solution containing 5 g of NaOH in 450 mL
+solution.
+Moles of NaOH = 
+-1
+5 g
+40 g mol
+ = 0.125 mol
+Volume

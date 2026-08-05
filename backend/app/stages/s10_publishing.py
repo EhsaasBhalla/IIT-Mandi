@@ -613,7 +613,7 @@ class PublishingStage(BaseStage):
     Stage 10: Formatting, PDF/DOCX/PPTX Document Generation and Packaging.
     """
     def execute(self, state: dict) -> dict:
-        job_id = self.job_id
+        job_id = self.document_id
         output_dir = Config.OUTPUT_FOLDER
         os.makedirs(output_dir, exist_ok=True)
 

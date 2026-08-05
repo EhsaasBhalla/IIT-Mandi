@@ -1,0 +1,195 @@
+ist. In this chapter, we shall study about
+the restrictions on domains and ranges of trigonometric
+functions which ensure the existence of their inverses and
+observe their behaviour through graphical representations.
+Besides, some elementary properties will also be discussed.
+The inverse trigonometric functions play an important
+role in calculus for they serve to define many integrals.
+The concepts of inverse trigonometric functions is also used in science and engineering.
+2.2  Basic Concepts
+In Class XI, we have studied trigonometric functions, which are defined as follows:
+sine function, i.e., sine : R → [– 1, 1]
+cosine function, i.e., cos : R → [– 1, 1]
+tangent function, i.e., tan : R – { x : x = (2n 
++ 1) 2
+π , n ∈ Z} → R
+cotangent function, i.e., cot : R – { x : x = nπ, n ∈ Z} → R
+secant function, i.e., sec : R – { x : x = (2n + 1) 2
+π , n ∈ Z} → R – (– 1, 1)
+cosecant function, i.e., cosec : R – { x : x = nπ,  n ∈ Z} → R – (– 1, 1)
+Chapter 2
+INVERSE TRIGONOMETRIC
+FUNCTIONS
+Aryabhata
+ (476-550 A. D.)
+Reprint 2026-27
+
+INVERSE TRIGONOMETRIC FUNCTIONS      19
+We have also learnt in Chapter 1 that if f : X→Y such that f (x) = y is one-one and
+onto, then we can define a unique function g : Y→X such that g(y) = x, where x ∈ X
+and y = f (x), y ∈ 
+Y. Here, the domain of g = range of f and the range of g =  domain
+of f. The function g is called the inverse of f and is denoted by f –1. Further, g is also
+one-one and onto and inverse of g is f. Thus, g –1 = (f –1)–1 = f. We also have
+(f –1 o f ) ( x) = f –1 (f (x)) = f –1(y) = x
+and (f o f –1) (y) = f (f –1(y))  = f (x) = y
+Since the domain of sine function is the set of all real numbers and range is the
+closed interval [–1, 1]. If we restrict its domain to ,2 2
+− π π 
+  
+, then it becomes one-one
+and onto with range [– 1, 1]. Actually, sine function restricted to any of the intervals
+−
+
+
+
+3
+2 2
+π π,  , ,2 2
+−π π 
+  
+, 3,2 2
+π π 
+  
+etc., is one-one and its range is [–1, 1]. We can,
+therefore, define the inverse of sine function in each of these intervals. We denote the
+inverse of sine function by sin –1 (arc sine function). Thus, sin –1 is a function whose
+domain is [– 1, 1] and range could be any of the intervals 3 ,2 2
+− π −π 
+  
+, ,2 2
+−π π 
+  
+ or
+3,2 2
+π π 
+  
+, and so on. Corresponding to each such interval, we get a branch of the
+function sin–1. The branch with range ,2 2
+−π π 
+    is called the principal value branch,
+whereas other inter vals as range give differ ent branches of sin–1. When we refer
+to the function sin –1, we take it as the function whose domain is [–1, 1] and range is
+,2 2
+−π π 
+  
+. We write  sin –1 : [–1, 1] → ,2 2
+−π π 
+  
+From the definition of the inverse functions, it follows that sin (sin –1 x ) = x
+if  – 1 ≤ x ≤ 1 and sin –1 (sin x) = x if 2 2 xπ π− ≤ ≤ . In other words, if y = sin–1 x, then
+sin y = x.
+Remarks
+(i) We know from Chapter 1, that if y = f(x) is an invertible function, then  x = f –1 (y).
+Thus, the graph of sin –1 function can be obtained from the graph of original
+function  by interchanging x and y axes, i.e., if (a, b) is a point on the graph of
+sine function, then (b, a) becomes the corresponding point on the graph of inverse
+Reprint 2026-27
+
+ 20 MATHEMA TICS
+of sine function. Thus, the graph of the function y = sin–1 x can be obtained from
+the graph of y = sin x by interchanging x and y axes. The graphs of y = sin x and
+y = sin–1 x are as given in Fig 2.1 (i), (ii), (iii). The dark portion of the graph of
+y = sin–1 x represent the principal value branch.
+(ii) It can be shown that the graph of an inverse function can be obtained from the
+corresponding graph of original function as a mirror image (i.e., reflection) along
+the line y = x. This can be visualised by looking the graphs of y = sin x and
+y = sin–1 x as given in the same axes (Fig 2.1 (iii)).
+Like sine function, the cosine function is a function whose domain is the set of all
+real numbers and range is the set [–1, 1]. If we restrict the domain of cosine function
+to [0, π], then it becomes one-one and onto with range [–1, 1]. Actually,  cosine function
+Fig 2.1 (ii) Fig 2.1 (iii)
+Fig 2.1 (i)
+Reprint 2026-27
+
+INVERSE TRIGONOMETRIC FUNCTIONS      21
+restricted to any of the intervals [– π, 0],  [0,π], [π, 2π] etc., is bijective with range as
+[–1, 1]. We can, therefore, define the inverse of cosine function in each of these
+intervals. We denote the inverse of the cosine function by cos–1 (arc cosine function).
+Thus, cos –1 is a function whose domain is [–1, 1] and range
+could be any of the intervals [– π, 0], [0, π], [π , 2 π] etc.
+Corresponding to each such interval, we get a branch of the
+function cos–1. The branch with range [0, π] is called the principal
+value branch of the function cos–1. We write
+cos–1 : [–1, 1] → [0, π].
+The graph of the function given by y = cos–1 x can be drawn
+in the same way as discussed about the graph of y = sin–1 x. The
+graphs of y = cos x and y = cos–1x are given in Fig 
+2.2 (i) and (ii).
+Fig 2.2 (ii)
+Let us now discuss cosec –1x and sec –1x as follows:
+Since, cosec x = 1
+sin x , the domain of the cosec function is the set {x : x ∈ R and
+x ≠ nπ, n
+ ∈ Z} and the range is the set {y : y ∈ R, y ≥ 1 or y ≤ –1} i.e., the set
+R – (–1, 1). It means that y = cosec x assumes all real values except –1 < y < 1 and is
+not defined for integral multiple of π. If we restrict the domain of cosec function to
+,2 2
+π π −   – {0}, then it is one to one and onto with its range as the set R – (– 1, 1). Actually,
+cosec function restricted to any of the intervals 
+3 , { }2 2
+− π −π  − −π   , ,2 2
+−π π 
+    – {0},
+3, { }2 2
+π π  − π    etc., is bijective and its range is the set of all real numbers R – (–1, 1).
+Fig 2.2 (i)
+Reprint 2026-27
+
+ 22 MATHEMA TICS
+Thus cosec–1 can be defined as a function whose domain is R – (–1, 1) and range could
+be any of the intervals 
+− −
+
+
+− −3
+2 2
+π π π, { } , 
+−
+
+
+−π π
+2 2 0 , { }, 3, { }2 2
+π π  − π  
+etc. The
+function corresponding to the range , {0}2 2
+−π π  −  
+is called the principal value branch
+of cosec–1. We thus have principal branch as
+cosec–1  : R – (–1, 1) → , {0}2 2
+−π π  −  
+The graphs of y = cosec x and y = cosec–1 x are given in Fig 2.3 (i), (ii).
+Also, since sec x = 1
+cos x , the domain of y = sec x is the set R – {x : x = (2n + 1) 2
+π ,
+n ∈ Z} and range is the set R – (–1, 1). It means that sec (secant function) assumes
+all real values except –1 < y < 1 and is not defined for odd multiples of 2
+π . If we
+restrict the domain of  secant function to [0, π] – { 2
+π }, then it is one-one and onto with
+Fig 2.3 (i) Fig 2.3 (ii)
+Reprint 2026-27
+
+INVERSE TRIGONOMETRIC FUNCTIONS      23
+its range as the set R – (–1, 1). Actually, secant function  restricted to any of the
+intervals [–π, 0] – { 2
+−π }, [0, ] – 2
+π π   
+, [π, 2π] – { 3
+2
+π } etc., is bijective and its range
+is R – {–1, 1}. Thus sec–1 can be defined as a function whose domain is R– (–1, 1) and
+range could be any of the intervals [– π, 0] – { 2
+−π }, [0, π] – { 2
+π }, [π, 2π] – {3
+2
+π } etc.
+Corresponding to each of these intervals, we get different branches of the function sec–1.
+The branch with range [0, π] – { 2
+π } is called the principal value branch of the
+function sec–1. We thus have
+sec–1 : R – (–1,1) →  [0, π] – { 2
+π }
+The graphs of the functions y = sec x and y = sec-1 x are given in Fig 2.4 (i), (ii).
+Finally, we now discuss tan–1 and cot–1
+We know that the domain of the t

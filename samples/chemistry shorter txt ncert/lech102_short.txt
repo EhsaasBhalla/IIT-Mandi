@@ -1,0 +1,206 @@
+ed on a large scale in various instruments and
+devices. The reactions carried out electrochemically
+can be energy efficient and less polluting. Therefore,
+study of electrochemistry is important for creating new
+technologies that are ecofriendly. The transmission of
+sensory signals through cells to brain and vice versa
+and communication between the cells are known to
+have electrochemical origin. Electrochemistry, is
+therefore, a very vast and interdisciplinary subject. In
+this Unit, we will cover only some of its important
+elementary aspects.
+After studying this Unit, you will be
+able to
+· describe an electrochemical cell
+and differentiate between galvanic
+and electrolytic cells;
+· apply Nernst equation for
+calculating the emf of galvanic cell
+and define standard potential of
+the cell;
+· derive relation between standard
+potential of the cell, Gibbs energy
+of cell reaction and its equilibrium
+constant;
+· define resistivity ( r), conductivity
+(k) and molar conductivity (
+✆m) of
+ionic solutions;
+· differentiate between ionic
+(electrolytic) and electronic
+conductivity;
+· describe the method for
+measurement of conductivity of
+electrolytic solutions and
+calculation of their molar
+conductivity;
+· justify the variation of
+conductivity and molar
+conductivity of solutions with
+change in their concentration and
+define 
+m (molar conductivity at
+zero concentration or infinite
+dilution);
+· enunciate Kohlrausch law and
+learn its applications;
+· understand quantitative aspects
+of electrolysis;
+· describe the construction of some
+primary and secondary batteries
+and fuel cells;
+· explain corrosion as an
+electrochemical process.
+Objectives
+Chemical reactions can be used to produce electrical energy,
+conversely, electrical energy can be used to carry out chemical
+reactions that do not proceed spontaneously.
+2
+Electrochemistry
+Unit UnitUnit UnitUnit
+2
+Electrochemistry
+Reprint 2026-27
+
+32Chemistry
+Cu
+Eext >1.1
+e
+–
+CurrentCathode
++ve
+Anode
+–ve
+Zn
+Fig. 2.2
+Functioning of Daniell
+cell when external
+voltage Eext opposing the
+cell potential is applied.
+We had studied the construction and functioning of Daniell cell
+(Fig. 2.1). This cell converts the chemical energy liberated during the
+redox reaction
+Zn(s) + Cu 2+(aq) ® Zn2+(aq) + Cu(s) (2.1)
+to electrical energy and has an electrical
+potential equal to 1.1 V when concentration
+of Zn2+ and Cu2+ ions is unity (1 mol dm–3)*.
+Such a device is called a galvanic or a
+voltaic cell.
+If an external opposite potential is applied
+in the galvanic cell [Fig. 2.2(a)] and increased
+slowly, we find that the reaction continues to
+take place till the opposing voltage reaches
+the value 1.1 V [Fig. 2.2(b)] when, the reaction
+stops altogether and no current flows through
+the cell. Any further increase in the external
+potential again starts the reaction but in the
+opposite direction [Fig. 2.2(c)]. It now functions
+as an electrolytic cell,
+ a device for using
+electrical energy to carry non-spontaneous
+chemical reactions. Both types of cells are
+quite important and we shall study some of
+their salient features in the following pages.
+*Strictly speaking activity should be used instead of concentration. It is directly proportional to concentration. In dilute
+solutions, it is equal to concentration. You will study more about it in higher classes.
+2.1 2.12.1 2.12.1 ElectrochemicalElectrochemicalElectrochemicalElectrochemicalElectrochemical
+Cells CellsCells CellsCells
+Fig. 2.1: Daniell cell having electrodes of zinc and
+copper dipping in the solutions of their
+respective salts.
+salt
+bridge
+Zn Cu
+anode cathodecurrent
+ZnSO4 CuSO4
+E <ext 1.1V
+e
+-ve +ve
+I=0
+Zn Cu
+ZnSO4 CuSO4
+E =ext 1.1V
+When E ext < 1.1 V
+(i) Electrons flow from Zn rod to
+Cu rod hence current flows
+from Cu to Zn.
+(ii) Zn dissolves at anode and
+copper deposits at cathode.
+When E ext = 1.1 V
+(i) No flow of
+electrons or
+current.
+(ii) No chemical
+reaction.
+When E ext > 1.1 V
+(i) Electrons flow
+from Cu to Zn
+and current flows
+from Zn to Cu.
+(ii) Zinc is deposited
+at the zinc
+electrode and
+copper dissolves at
+copper electrode.
+(a) (b)
+(c)
+Reprint 2026-27
+
+33 Electrochemistry
+As mentioned earlier a galvanic cell is an electrochemical cell that
+converts the chemical energy of a spontaneous redox reaction into
+electrical energy. In this device the Gibbs energy of the spontaneous
+redox reaction is converted into electrical work which may be used for
+running a motor or other electrical gadgets  like heater , fan,
+geyser, etc.
+Daniell cell discussed earlier is one such cell in which the following
+redox reaction occurs.
+Zn(s) + Cu 2+(aq) ® Zn2+ (aq) + Cu(s)
+This reaction is a combination of two half reactions whose addition
+gives the overall cell reaction:
+(i) Cu2+   +  2e –    ® Cu(s) (reduction half reaction) (2.2)
+(ii) Zn(s)  ® Zn2+ + 2e – (oxidation half reaction) (2.3)
+These reactions occur in two different portions of the Daniell cell.
+The reduction half reaction occurs on the copper electrode while the
+oxidation half reaction occurs on the zinc electrode. These two portions
+of the cell are also called 
+half-cells or redox couples . The copper
+electrode may be called the reduction half cell and the zinc electrode,
+the oxidation half-cell.
+We can construct innumerable number of galvanic cells on the pattern
+of Daniell cell by taking combinations of different half-cells. Each half-
+cell consists of a metallic electrode dipped into an electrolyte. The two
+half-cells are connected by a metallic wire through a voltmeter and a
+switch externally. The electrolytes of the two half-cells are connected
+internally through a salt bridge as shown in Fig. 2.1.  Sometimes, both
+the electrodes dip in the same electrolyte solution and in such cases we
+do not require a salt bridge.
+At each electrode-electrolyte interface there is a tendency of metal
+ions from the solution to deposit on the metal electrode trying to make
+it positively charged. At the same time, metal atoms of the electrode
+have a tendency to go into the solution as ions and leave behind the
+electrons at the electrode trying to make it negatively charged. At
+equilibrium, there is a separation of charges and depending on the
+tendencies of the two opposing reactions, the electrode may be positively
+or negatively charged with  respect to the solution. A potential difference
+develops between the electrode and the electrolyte which is called
+electrode potential. When the concentrations of all the species involved
+in a half-cell is unity then the electrode potential is known as standard
+electrode potential . According to IUPAC convention, standard
+reduction potentials are now called standard electrode potentials. In a
+galvanic cell, the half-cell in which oxidation takes place is called anode
+and it has a negative potential with respect to the solution. The other
+half-cell in which reduction takes place is called cathode and it has a
+positive potential with respect to the solution. Thus, there exists a
+potential difference between the two electrodes and as soon as the
+switch is in the on position the electrons flow from negative electrode
+to positive electrode. The direction of current flow is opposite to that of
+electron flow.
+2.2 Galvanic Cells2.2 Galvanic Cells2.2 Galvanic Cells2.2 Galvanic Cells2.2 Galvanic Cells
+Reprint 2026-27
+
+34Chemistry
+The potential difference between the two electrodes of a galvanic
+cell is called the cell potential  and is measured in volts. The cell
+potential is the difference between the electrode potentials (reduction
+potentials) of 

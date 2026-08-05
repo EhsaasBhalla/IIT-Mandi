@@ -1,0 +1,335 @@
+que solution or not, is
+determined by the number a1 b 2 – a2 b1. (Recall that if
+1 1
+2 2
+a b
+a b≠  or, a1 b2 – a2 b1 ≠ 0,  then the system of linear
+equations has a unique solution). The number a1 b2 – a2 b1
+which determines uniqueness of solution is associated with the matrix 1 1
+2 2
+A a b
+a b
+ =   
+and is called the determinant of A or det A. Determinants have wide applications in
+Engineering, Science, Economics, Social Science, etc.
+In this chapter, we shall study determinants up to order three only with real entries.
+Also, we will study various properties of determinants, minors, cofactors and applications
+of determinants in finding the area of a triangle, adjoint and inverse of a square matrix,
+consistency and inconsistency of system of linear equations and solution of linear
+equations in two or three variables using inverse of a matrix.
+4.2  Determinant
+To every square matrix A = [ aij] of order n, we can associate a number (real or
+complex) called determinant of the square matrix A, where aij = (i, j)th element of A.
+Chapter 4
+DETERMINANTS
+P.S. Laplace
+(1749-1827)
+Reprint 2026-27
+
+DETERMINANTS     77
+This may be thought of as a function which associates each square matrix with a
+unique number (real or complex). If M is the set of square matrices, K is the set of
+numbers (real or complex) and f : M → K is defined by f (A) = k, where A
+ ∈ M and
+k ∈ K, then f (A) is called the determinant of A. It is also denoted by |A | or det A or ∆.
+If A = 
+a b
+c d
+ 
+  
+, then determinant of A is written as |A | = 
+a b
+c d  = det (A)
+Remarks
+(i) For matrix A, |A | is read as determinant of A and not modulus of A.
+(ii) Only square matrices have determinants.
+4.2.1  Determinant of a matrix of order one
+Let A = [a ] be the matrix of order 1, then determinant of A is defined to be equal to a
+4.2.2  Determinant of a matrix of order two
+Let A = 
+11 12
+21 22
+a a
+a a
+ 
+  
+ be a matrix of order 2 × 2,
+then the determinant of A is defined as:
+det (A) = |A| = ∆ =  = a 11a22 – a21a12
+Example 1 Evaluate 
+2 4
+–1 2 .
+Solution We have 
+2 4
+–1 2  = 2 (2) – 4(–1) = 4 + 4 = 8.
+Example 2 Evaluate 1
+– 1
+x x
+x x
++
+Solution We have
+1
+– 1
+x x
+x x
++
+ = x (x) – (x + 1) ( x – 1)  = x 2 – (x2 – 1) = x2 – x2 + 1 = 1
+4.2.3  Determinant of a matrix of order 3 × 3
+Determinant of a matrix of order three can be determined by expressing it in terms of
+second order determinants. This is known as expansion of a determinant along
+a row (or a column). There are six ways of expanding a determinant of order
+Reprint 2026-27
+
+ 78 MATHEMA TICS
+3 corresponding to each of three rows (R 1, R2 and R3) and three columns (C1, C2 and
+C3) giving the same value as shown below.
+Consider the determinant of square matrix A = [ aij]3 × 3
+i.e., | A | = 21 22 23
+31 32 33
+a a a
+a a a
+11 12 13a a a
+Expansion along first Row (R 1)
+Step 1 Multiply first element a11 of R 1 by (–1)(1 + 1) [(–1)sum of suffixes in a11] and with the
+second order determinant obtained by deleting the elements of first row (R1) and first
+column (C1) of | A | as a1
+1 lies in R 1 and C1,
+i.e., (–1)1 + 1 a11 
+22 23
+32 33
+a a
+a a
+Step 2 Multiply 2nd element a12 of R1 by (–1)1 + 2 [(–1)sum of suffixes in a12] and the second
+order determinant obtained by deleting elements of first row (R1) and 2nd column (C2)
+of | A | as a12 lies in R 1 and C2,
+i.e., (–1)1 + 2 a12 
+21 23
+31 33
+a a
+a a
+Step 3 Multiply third element a13 of R1 by (–1)1 + 3 [(–1)sum of suffixes in a13] and the second
+order determinant obtained by deleting elements of first row (R1) and third column (C3)
+of | A | as a13 lies in R 1 and C3,
+i.e., (–1)1 + 3 a13 
+21 22
+31 32
+a a
+a a
+Step 4 Now the expansion of determinant of A, that is, | A | written as sum of all three
+terms obtained in steps 1, 2 and 3 above is given by
+det A = |A| = (–1) 1 + 1 a11 
+22 23 21 231 2
+12
+32 33 31 33
+(–1)a a a aaa a a a
+++
+         + 
+21 221 3
+13
+31 32
+(–1) a aa a a
++
+or |A| = a11 ( a22 a33 – a32 a23) – a12 ( a21 a33 – a31 a23)
++ a13 ( a21 a32 – a31 a22)
+Reprint 2026-27
+
+DETERMINANTS     79
+= a11 a 22 a33 – a11 a32 a23 – a12 a21 a33 + a12 a 31 a23 + a13 a 21 a32
+– a13 a31 a22 ... (1)
+ANote  We shall apply all four steps together.
+Expansion along second row (R2)
+| A | =
+11 12 13
+31 32 33
+a a a
+a a a
+21 22 23a a a
+Expanding along R2, we get
+| A | =
+12 13 11 132 1 2 2
+21 22
+32 33 31 33
+(–1) (–1)a a a aa aa a a a
++ ++
+11 122 3
+23
+31 32
+(–1) a aa a a
+++
+= – a21 ( a12 a33 – a32 a13) + a22 ( a11 a33 – a31 a13)
+– a 23 ( a11 a32 – a31 a12)
+| 
+A | = – a21 a12 a 33 + a21 a 32 a13 + a22 a11 a33 – a22 a 31 a13 – a23 a11 a 32
+ + a23 a31 a12
+= a11 a22 a 33 – a11 a 23 a32 – a12 a 21 a33 + a12 a23 a 31 + a13 a 21 a 32
+– a13 a31 a22 ... (2)
+Expansion along first Column (C 1)
+| A | =
+12 13
+22 23
+32 33
+11
+21
+31
+a
+a
+a
+a a
+a a
+a a
+By expanding along C1, we get
+| A | =
+22 23 12 131 1 2 1
+11 21
+32 33 32 33
+(–1) ( 1)a a a aa aa a a a
++ ++ −
++ 
+12 133 1
+31
+22 23
+(–1) a aa a a
++
+= a11 (a22 a33 – a23 a32) – a21 (a12 a33 – a13 a32) + a31 (a12 a23 – a 13 a22)
+Reprint 2026-27
+
+ 80 MATHEMA TICS
+| A | = a11 a22 a33 – a11 a23 a32 – a21 a 12 a33 + a21 a13 a 32 + a31 a 12 a 23
+– a31 a13 a22
+= a11 a22 a 33 – a11 a 23 a32 – a12 a 21 a33 + a12 a23 a 31 + a13 a 21 a 32
+– a13 a31 a22 ... (3)
+Clearly, values of |A | in (1), (2) and (3) are equal. It is left as an exercise to the
+reader to verify that the values of |A| by expanding along R3, C2 and C3 are equal to the
+value of |A | obtained in (1), (2) or (3).
+Hence, expanding a determinant along any row or column gives same value.
+Remarks
+(i) For easier calculations, we shall expand the determinant along that row or column
+which contains maximum number of zeros.
+(ii) While expanding, instead of multiplying by (–1)i + j, we can multiply by +1 or –1
+according as (i + j) is even or odd.
+(iii) Let A = 2 2
+4 0
+ 
+  
+ and B = 
+1 1
+2 0
+ 
+  
+ . Then, it is easy to verify that A = 2B. Also
+|A | = 0 – 8 = – 8 and |B | = 0 – 2 = – 2.
+Observe that, |A | = 4(– 2) = 2 2|B | or |A | = 2 n|B |, where n = 2 is the order of
+square matrices A and B.
+In general, if A = kB where A and B are square matrices of order n, then | A| = kn
+| B |, where 
+n = 1, 2, 3
+Example 3 Evaluate the determinant  ∆ = 
+1 2 4
+–1 3 0
+4 1 0
+.
+Solution Note that in the third column, two entries are zero. So expanding along third
+column (C3), we get
+∆ = –1 3 1 2 1 24 – 0 04 1 4 1 –1 3 +
+= 4 (–1 – 12) – 0 + 0  = – 52
+Example 4 Evaluate ∆ = 
+0 sin – cos
+– sin 0 sin
+cos – sin 0
+α α
+α β
+α β
+.
+Reprint 2026-27
+
+DETERMINANTS     81
+Solution Expanding along R1, we get
+∆ =
+0 sin – sin sin – sin 00 – sin – cos– sin 0 cos 0 cos – sin
+β α β αα αβ α α β
+= 0 – sin α (0 – sin β cos α) – cos α (sin α sin β – 0)
+= sin α sin β cos α – cos α sin α sin β = 0
+Example 5 Find values of x for which 3 3 2
+1 4 1
+x
+x = .
+Solution We have 3 3 2
+1 4 1
+x
+x =
+i.e. 3 – x2 = 3 – 8
+i.e. x2 = 8
+Hence x = 2 2±
+EXERCISE 4.1
+Evaluate the determinants in Exercises 1 and 2.
+1.
+2 4
+–5 –1
+2. (i)
+cos – sin
+sin cos
+θ θ
+θ θ (ii)
+2 – 1 – 1
+1 1
+x x x
+x x
++
++ +
+3. If A = 
+1 2
+4 2
+ 
+  
+, then show that | 2A | = 4 | A |
+4. If A = 
+1 0 1
+0 1 2
+0 0 4
+ 
+ 
+ 
+  
+, then show that | 3 A | = 27 | A |
+5. Evaluate the determinants
+(i)
+3 –1 –2
+0 0 –1
+3 –5 0
+(ii)
+3 – 4 5
+1 1 –2
+2 3 1
+Reprint 2026-27
+
+ 82 MATHEMA TICS
+(iii)
+0 1 2
+–1 0 –3
+–2 3 0
+(iv)
+2 –1 –2
+0 2 –1
+3 –5 0
+6. If A = 
+1 1 –2
+2 1 –3
+5 4 –9
+ 
+ 
+ 
+  
+, find | A |
+7. Find values of x, if
+(i) 2 4 2 4
+5 1 6
+x
+x= (ii) 2 3 3
+4 5 2 5
+x
+x=
+8. If 2 6 2
+18 18 6
+x
+x = , then x is equal to
+(A) 6 (B) ± 6 (C) – 6 (D) 

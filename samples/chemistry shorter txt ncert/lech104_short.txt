@@ -1,0 +1,206 @@
+ metals,
+3d series (Sc to Zn), 4 d series (Y to Cd), 5 d series (La
+and Hf to Hg) and 6d series which has Ac and elements
+from Rf to Cn. The two series of the inner transition
+metals; 4 f (Ce to Lu) and 5 f (Th to Lr) are known as
+lanthanoids and actinoids respectively.
+Originally the name transition metals was derived
+from the fact that their chemical properties were
+transitional between those of s and p-block elements.
+Now according to IUPAC, transition metals are defined
+as metals which have incomplete d subshell either in
+neutral atom or in their ions. Zinc, cadmium and
+mercury of group 12 have full d
+10
+ configuration in their
+ground state as well as in their common oxidation states
+and hence, are not regarded as transition metals.
+However, being the end members of the 3d, 4d and 5d
+transition series, respectively, their chemistry is studied
+along with the chemistry of the transition metals.
+The presence of partly filled d or f orbitals in their
+atoms makes transition elements different from that of
+The d  - and f  -
+Block Element s
+The d- and f-
+Block Element s
+After studying this Unit, you will be
+able to
+• learn the positions of the d–  and
+f-block elements in the periodic
+table;
+• know the electronic configurations
+of the transition ( d-block) and the
+inner transition (f-block) elements;
+• appreciate the relative stability of
+various oxidation states in terms
+of electrode potential values;
+• describe the preparation,
+properties, structures and uses
+of some important compounds
+such as K 2Cr2O7 and KMnO 4;
+• understand the general
+characteristics of the d–  and
+f– block elements and the general
+horizontal and group trends in
+them;
+• describe the properties of the
+f-block elements and give a
+comparative account of the
+lanthanoids and actinoids with
+respect to their electronic
+configurations, oxidation states
+and chemical behaviour .
+Objectives
+Iron, copper, silver and gold are among the transition elements that
+have played important roles in the development of human civilisation.
+The inner transition elements such as Th, Pa and U are proving
+excellent sources of nuclear energy in modern times.
+4
+Unit UnitUnit UnitUnit
+4
+Reprint 2026-27
+
+90Chemistry
+the non-transition elements. Hence, transition elements
+and their compounds ar e studied separately. However ,
+the usual theory of valence as applicable to the non-
+transition elements can be applied successfully to the
+transition elements also.
+Various pr ecious metals such as silver , gold and
+platinum and industrially important metals like iron,
+copper and titanium belong to the transition metals series.
+In this Unit, we shall first deal with the electronic
+configuration, occurrence and general characteristics of
+transition elements with special emphasis on the trends
+in the properties of the first row (3 d) transition metals
+along with the preparation and properties of some
+important compounds. This will be followed by
+consideration of certain general aspects such as electronic
+configurations, oxidation states and chemical reactivity
+of the inner transition metals.
+THE TRANSITION ELEMENTS (d-BLOCK)
+The d–block occupies the large middle section of the periodic table
+flanked between s– and p– blocks in the periodic table. The d–orbitals
+of the penultimate energy level of atoms receive electrons giving rise to
+four rows of the transition metals, i.e., 3 d, 4d, 5d and 6d. All these
+series of transition elements are shown in Table 4.1.
+In general the electronic configuration of outer orbitals of these elements
+is (n-1)d
+1– 10
+ns
+1–2
+except for Pd where its electronic configuration is 4d105s0.
+The (n–1) stands for the inner d orbitals which may have one to ten
+electrons and the outermost ns orbital may have one or two electrons.
+However, this generalisation has several exceptions because of very
+little energy difference between (n-1) d and n s orbitals. Furthermore,
+half and completely filled sets of orbitals are relatively more stable. A
+consequence of this factor is reflected in the electronic configurations
+of Cr and Cu in the 3 d series. For example, consider the case of Cr ,
+which has 3 d
+5 
+4s
+1
+ configuration instead of 3 d
+4
+4s
+2
+; the energy gap
+between the two sets (3d and 4s) of orbitals is small enough to prevent
+electron entering the 3 d orbitals. Similarly in case of Cu, the
+configuration is 3 d
+10
+4s
+1
+ and not 3 d
+9
+4s
+2
+. The ground state electronic
+configurations of the outer orbitals of transition elements are given in
+Table 4.1.
+4.14.14.1
+4.14.1 Position in thePosition in thePosition in thePosition in thePosition in the
+Periodic TablePeriodic TablePeriodic TablePeriodic TablePeriodic Table
+4.2 4.24.2 4.24.2 Electronic ElectronicElectronic ElectronicElectronic
+ConfigurationsConfigurationsConfigurationsConfigurationsConfigurations
+of the d-Blockof the d-Blockof the d-Blockof the d-Blockof the d-Block
+Elements ElementsElements ElementsElements
+Sc Ti V Cr Mn Fe Co Ni Cu Zn
+Z 21 22 23 24
+25 26 27 28 29 30
+4s 2 2 2 1 2 2 2 2 1 2
+3d 1 2 3 5 5 6 7 8 10 10
+1st Series
+Table 4.1: Electronic Configurations of outer orbitals of the Transition Elements
+(ground state)
+Reprint 2026-27
+
+91 The d- and f- Block Elements
+The electronic configurations of outer orbitals of Zn, Cd, Hg and Cn
+are represented by the general formula (n-1) d
+10
+ns
+2
+. The orbitals in
+these elements are completely filled in the ground state as well as in
+their common oxidation states. Therefore, they are not regarded as
+transition elements.
+The d orbitals of the transition elements protrude to the periphery of
+an atom more than the other orbitals (i.e., s and p), hence, they are more
+influenced by the surroundings as well as affect the atoms or molecules
+surrounding them. In some respects, ions of a given d
+n
+ configuration
+(n = 1 – 9) have similar magnetic and electronic properties. With partly
+filled d orbitals these elements exhibit certain characteristic properties
+such as display of a variety of oxidation states, formation of coloured
+ions and entering into complex formation with a variety of ligands.
+The transition metals and their compounds also exhibit catalytic
+property and paramagnetic behaviour . All these characteristics have
+been discussed in detail later in this Unit.
+There are greater similarities in the properties of the transition
+elements of a horizontal row in contrast to the non-transition elements.
+However, some gr oup similarities also exist. W e shall first study the
+general characteristics and their trends in the horizontal rows
+(particularly 3d row) and then consider some group similarities.
+2nd Series
+Y Zr Nb Mo Tc Ru Rh Pd Ag Cd
+Z 39 40 41 42 43 44
+45 46 47 48
+5s 2 2 1 1 1 1 1 0 1 2
+4d 1 2 4 5 6 7 8 10 10 10
+3rd Series
+La Hf Ta W Re Os Ir Pt Au Hg
+Z 57 72 73 74 75 76
+77 78 79 80
+6s 2 2 2 2 2 2 2 1 1 2
+5d 1 2 3 4 5 6 7 9 10 10
+Ac Rf Db Sg Bh Hs Mt Ds Rg Cn
+Z 89 104 105 106 107 108
+109 110 111 112
+7s 2 2 2 2 2 2 2 2 1 2
+6d 1 2 3 4 5 6 7 8 10 10
+4th Series
+On what ground can you say that scandium ( Z = 21) is a transition
+element but zinc ( Z = 30) is not?
+On the basis of incompletely filled 3d orbitals in case of scandium atom
+in its ground state (3d
+1
+), it is regarded as a transition element. On the
+other hand, zinc atom has completely filled d orbitals (3 d
+10
+) in its
+ground state as well as in its oxidised state, hence it is not regarded
+as a transition element.
+Example 4.1 Example 4.1Example 4.1 Example 4.1Example 4.1
+Solution SolutionSolution SolutionSolution
+Reprint 2026-27
+
+92Chemistry
+1
+2
+3
+4
+M.p./10
