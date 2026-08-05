@@ -34,10 +34,22 @@ class PDFReport(FPDF):
 
 
 def _safe(text, maxlen=2000):
-    """Sanitize text for PDF — replace unsupported chars."""
+    """Sanitize text for PDF — replace unsupported chars and split long words."""
     if not text:
         return ""
     text = str(text)[:maxlen]
+    
+    # Split extremely long contiguous strings (like URLs/math) to prevent fpdf2 multi_cell crash
+    words = text.split(' ')
+    wrapped = []
+    for w in words:
+        if len(w) > 50:
+            chunks = [w[i:i+50] for i in range(0, len(w), 50)]
+            wrapped.append(' '.join(chunks))
+        else:
+            wrapped.append(w)
+    text = ' '.join(wrapped)
+    
     return text.encode('latin-1', errors='replace').decode('latin-1')
 
 
