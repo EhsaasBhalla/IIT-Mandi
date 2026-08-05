@@ -18,6 +18,9 @@ class Config:
     GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
     HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY')
     
+    # Database Settings
+    MONGODB_URI = os.environ.get('MONGODB_URI')
+    
     @staticmethod
     def init_app(app):
         os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)

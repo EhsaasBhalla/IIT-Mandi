@@ -5,10 +5,7 @@ import os
 import json
 import logging
 from ..config import Config
-
-logger = logging.getLogger(__name__)
-
-JOBS_INDEX_FILE = os.path.join(Config.CACHE_FOLDER, "_jobs_index.json")
+from .db import db_manager
 
 class JobManager:
     def __init__(self):
@@ -16,44 +13,56 @@ class JobManager:
         self._load_history()
         
     def _load_history(self):
-        """Load all previous jobs from disk on startup."""
+        """Load all previous jobs from MongoDB on startup."""
+        coll = db_manager.get_jobs_collection()
+        if coll is None:
+            return
+            
         try:
-            if os.path.exists(JOBS_INDEX_FILE):
-                with open(JOBS_INDEX_FILE, 'r') as f:
-                    saved_jobs = json.load(f)
-                for job_id, meta in saved_jobs.items():
-                    # Mark incomplete jobs as resumable
-                    if meta.get("status") == "processing":
-                        meta["status"] = "interrupted"
-                        meta["stage"] = meta.get("stage", "Unknown") + " (interrupted)"
-                    self.jobs[job_id] = meta
-                logger.info(f"Loaded {len(self.jobs)} jobs from history")
+            # We don't pull the massive 'result' object into memory here
+            saved_jobs = coll.find({}, {"result": 0})
+            for meta in saved_jobs:
+                job_id = meta["id"]
+                # Mark incomplete jobs as resumable
+                if meta.get("status") == "processing":
+                    meta["status"] = "interrupted"
+                    meta["stage"] = meta.get("stage", "Unknown") + " (interrupted)"
+                
+                # Remove the mongo _id so it doesn't break our dictionary
+                if "_id" in meta:
+                    del meta["_id"]
+                self.jobs[job_id] = meta
+            logger.info(f"Loaded {len(self.jobs)} jobs from MongoDB history")
         except Exception as e:
-            logger.warning(f"Could not load job history: {e}")
+            logger.warning(f"Could not load job history from MongoDB: {e}")
     
-    def _save_jobs_index(self):
-        """Persist job metadata index to disk."""
+    def _save_job_meta(self, job_id):
+        """Persist job metadata to MongoDB."""
+        coll = db_manager.get_jobs_collection()
+        if coll is None:
+            return
+            
         try:
-            # Save only metadata, not the full result (that's in cache files)
-            index = {}
-            for job_id, job in self.jobs.items():
-                index[job_id] = {
-                    "id": job["id"],
-                    "status": job["status"],
-                    "progress": job["progress"],
-                    "stage": job.get("stage", ""),
-                    "language": job.get("language", "English"),
-                    "subject": job.get("subject", ""),
-                    "topic": job.get("topic", ""),
-                    "target_grade": job.get("target_grade", ""),
-                    "created_at": job.get("created_at", 0),
-                    "file_hash": job.get("file_hash", ""),
-                    "error": job.get("error")
-                }
-            with open(JOBS_INDEX_FILE, 'w') as f:
-                json.dump(index, f, indent=2)
+            job = self.jobs.get(job_id)
+            if not job:
+                return
+                
+            meta_only = {
+                "id": job["id"],
+                "status": job["status"],
+                "progress": job["progress"],
+                "stage": job.get("stage", ""),
+                "language": job.get("language", "English"),
+                "subject": job.get("subject", ""),
+                "topic": job.get("topic", ""),
+                "target_grade": job.get("target_grade", ""),
+                "created_at": job.get("created_at", 0),
+                "file_hash": job.get("file_hash", ""),
+                "error": job.get("error")
+            }
+            coll.update_one({"id": job_id}, {"$set": meta_only}, upsert=True)
         except Exception as e:
-            logger.warning(f"Could not save jobs index: {e}")
+            logger.warning(f"Could not save job {job_id} meta to MongoDB: {e}")
 
     def start_job(self, file_path, ref_path=None, language="English", file_hash=None):
         """Start a new job, or resume an existing one if same file_hash exists."""
@@ -77,7 +86,7 @@ class JobManager:
             "result": None,
             "error": None
         }
-        self._save_jobs_index()
+        self._save_job_meta(job_id)
         
         thread = threading.Thread(target=self._run_pipeline, args=(job_id, file_path, ref_path, language, file_hash))
         thread.daemon = True
@@ -90,32 +99,33 @@ class JobManager:
             self.jobs[job_id]["status"] = "processing"
             
             # --- CACHING SETUP ---
-            cache_file = None
-            if file_hash:
-                cache_file = os.path.join(Config.CACHE_FOLDER, f"{file_hash}.json")
-                
+            coll = db_manager.get_jobs_collection()
+            
             state = {}
-            if cache_file and os.path.exists(cache_file):
+            if coll is not None:
                 try:
-                    with open(cache_file, 'r') as f:
-                        state = json.load(f)
-                    cached_keys = list(state.keys())
-                    logger.info(f"Resuming from cache. Completed stages: {cached_keys}")
-                except Exception:
-                    state = {}
+                    doc = coll.find_one({"id": job_id})
+                    if doc and "result" in doc and doc["result"]:
+                        state = doc["result"]
+                        cached_keys = list(state.keys())
+                        logger.info(f"Resuming from MongoDB cache. Completed stages: {cached_keys}")
+                except Exception as e:
+                    logger.warning(f"Could not load state from MongoDB: {e}")
                     
             def save_state():
-                """Persist state to disk after each stage for resumability."""
-                if cache_file:
-                    with open(cache_file, 'w') as f:
-                        json.dump(state, f)
-                self._save_jobs_index()
+                """Persist state to MongoDB after each stage for resumability."""
+                if coll is not None:
+                    try:
+                        coll.update_one({"id": job_id}, {"$set": {"result": state}})
+                    except Exception as e:
+                        logger.error(f"Failed to save state to MongoDB: {e}")
+                self._save_job_meta(job_id)
                 
             def update_stage_msg(msg, progress=None):
                 self.jobs[job_id]["stage"] = msg
                 if progress is not None:
                     self.jobs[job_id]["progress"] = progress
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
             
             # ============================
             # STAGE 1: Document Parsing (FREE - local PyPDF2)
@@ -123,7 +133,7 @@ class JobManager:
             if 'doc_intel' not in state:
                 self.jobs[job_id]["stage"] = "Stage 1: Parsing Document"
                 self.jobs[job_id]["progress"] = 0
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 from ..stages.s1_document_intelligence import DocumentIntelligenceStage
                 s1 = DocumentIntelligenceStage(job_id)
                 doc_intel = s1.execute(file_path, ref_path)
@@ -139,7 +149,7 @@ class JobManager:
             if 'classification' not in state:
                 self.jobs[job_id]["stage"] = "Stage 2: Classifying Content"
                 self.jobs[job_id]["progress"] = 10
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 from ..stages.s2_educational_classification import EducationalClassificationStage
                 s2 = EducationalClassificationStage(job_id, config={"language": language})
                 classification = s2.execute(state['doc_intel'])
@@ -148,7 +158,7 @@ class JobManager:
                 self.jobs[job_id]["topic"] = classification.topic
                 self.jobs[job_id]["target_grade"] = classification.grade_level
                 save_state()
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 logger.info("Stage 2 complete: Classification done")
             else:
                 logger.info("Stage 2 skipped (cached)")
@@ -159,7 +169,7 @@ class JobManager:
             if 'knowledge' not in state:
                 self.jobs[job_id]["stage"] = "Stage 3: Extracting Knowledge"
                 self.jobs[job_id]["progress"] = 20
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 from ..stages.s3_knowledge_extraction import KnowledgeExtractionStage
                 s3 = KnowledgeExtractionStage(job_id, config={"language": language})
                 knowledge = s3.execute(state['doc_intel'], state['classification'])
@@ -180,7 +190,7 @@ class JobManager:
                     
                 self.jobs[job_id]["stage"] = "Stage 4: Planning Lessons"
                 self.jobs[job_id]["progress"] = 30
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 
                 from ..stages.s4_lesson_planner import LessonPlannerStage, PlanOutline
                 s4 = LessonPlannerStage(job_id, config={"language": language})
@@ -230,7 +240,7 @@ class JobManager:
             if len(state['period_contents']) < total_periods:
                 self.jobs[job_id]["stage"] = "Stage 5: Generating Content"
                 self.jobs[job_id]["progress"] = 40
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 
                 from ..stages.s5_content_generation import ContentGenerationStage
                 s5 = ContentGenerationStage(job_id, config={"language": language})
@@ -255,7 +265,7 @@ class JobManager:
             if 'activities' not in state:
                 self.jobs[job_id]["stage"] = "Stage 6: Designing Activities"
                 self.jobs[job_id]["progress"] = 50
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 from ..stages.s6_activities import ActivityGenerationStage
                 s6 = ActivityGenerationStage(job_id, config={"language": language})
                 activities = s6.execute(lesson_plan_obj)
@@ -271,7 +281,7 @@ class JobManager:
             if 'ab_test_assessment' not in state:
                 self.jobs[job_id]["stage"] = "Stage 7: Creating Assessments"
                 self.jobs[job_id]["progress"] = 60
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 from ..stages.s7_assessment import AssessmentGenerationStage
                 s7 = AssessmentGenerationStage(job_id, config={"language": language})
                 ab_test = s7.execute(state['knowledge'])
@@ -287,7 +297,7 @@ class JobManager:
             if 'gap_analysis' not in state:
                 self.jobs[job_id]["stage"] = "Stage 8: Analyzing Gaps"
                 self.jobs[job_id]["progress"] = 70
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 from ..stages.s8_gap_analysis import GapAnalysisStage
                 s8 = GapAnalysisStage(job_id, config={"language": language})
                 gaps = s8.execute(state['knowledge'])
@@ -303,7 +313,7 @@ class JobManager:
             if 'validation' not in state:
                 self.jobs[job_id]["stage"] = "Stage 9: Validating Quality"
                 self.jobs[job_id]["progress"] = 80
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 from ..stages.s9_validation import ValidationStage
                 s9 = ValidationStage(job_id, config={"language": language})
                 validation = s9.execute(state['doc_intel'], str(state.get('lesson_plan', '')))
@@ -319,7 +329,7 @@ class JobManager:
             if 'publishing' not in state:
                 self.jobs[job_id]["stage"] = "Stage 10: Packaging TKP"
                 self.jobs[job_id]["progress"] = 90
-                self._save_jobs_index()
+                self._save_job_meta(job_id)
                 from ..stages.s10_publishing import PublishingStage
                 s10 = PublishingStage(job_id, config={"language": language})
                 publishing = s10.execute(state)
@@ -336,31 +346,30 @@ class JobManager:
             self.jobs[job_id]["progress"] = 100
             self.jobs[job_id]["stage"] = "Done"
             self.jobs[job_id]["result"] = state
-            self._save_jobs_index()
+            self._save_job_meta(job_id)
             logger.info(f"Pipeline complete for job {job_id}")
             
         except Exception as e:
             logger.error(f"Pipeline error at '{self.jobs[job_id].get('stage')}': {e}")
             self.jobs[job_id]["status"] = "error"
             self.jobs[job_id]["error"] = f"{self.jobs[job_id].get('stage', 'Unknown')}: {str(e)}"
-            self._save_jobs_index()
+            self._save_job_meta(job_id)
             
     def get_job_status(self, job_id: str) -> dict:
         job = self.jobs.get(job_id)
         if not job:
             return {"status": "not_found"}
         
-        # If completed, load full result from cache if not in memory
+        # If completed, load full result from MongoDB if not in memory
         if job.get("status") == "completed" and not job.get("result"):
-            file_hash = job.get("file_hash")
-            if file_hash:
-                cache_file = os.path.join(Config.CACHE_FOLDER, f"{file_hash}.json")
-                if os.path.exists(cache_file):
-                    try:
-                        with open(cache_file, 'r') as f:
-                            job["result"] = json.load(f)
-                    except Exception:
-                        pass
+            coll = db_manager.get_jobs_collection()
+            if coll is not None:
+                try:
+                    doc = coll.find_one({"id": job_id})
+                    if doc and "result" in doc:
+                        job["result"] = doc["result"]
+                except Exception as e:
+                    logger.warning(f"Could not retrieve full job {job_id} result from MongoDB: {e}")
         return job
 
     def get_all_jobs(self) -> list:
